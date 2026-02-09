@@ -1,0 +1,11 @@
+node_modules
+.git
+.gitignore
+.env
+.env.*
+.gemini
+.agent
+test_output.html
+README.md
+AGENTS.md
+*.md
