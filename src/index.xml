@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skin>
+  <information>
+    <name>AI Agent Starter Skin</name>
+    <version>1.0.0</version>
+    <description>AI 에이전트와 함께 만드는 티스토리 블로그 스킨 시작 템플릿입니다.</description>
+    <license>MIT License</license>
+  </information>
+  <author>
+    <name>Antigravity</name>
+    <homepage>https://github.com/google-deepmind</homepage>
+    <email>support@example.com</email>
+  </author>
+
+  <default>
+    <recentEntries>5</recentEntries>
+    <recentComments>5</recentComments>
+    <recentTrackbacks>0</recentTrackbacks>
+    <itemsOnGuestbook>10</itemsOnGuestbook>
+    <tagsInCloud>30</tagsInCloud>
+    <expandComment>0</expandComment>
+    <expandTrackback>0</expandTrackback>
+    <lengthOfRecentNotice>25</lengthOfRecentNotice>
+    <lengthOfRecentEntry>25</lengthOfRecentEntry>
+    <lengthOfRecentComment>25</lengthOfRecentComment>
+    <lengthOfRecentTrackback>25</lengthOfRecentTrackback>
+    <lengthOfLink>25</lengthOfLink>
+  </default>
+
+  <variables>
+    <variable>
+      <name>mainColor</name>
+      <label>메인 테마 색상</label>
+      <type>color</type>
+      <default>#3b82f6</default>
+    </variable>
+    <variable>
+      <name>headerImage</name>
+      <label>헤더 배경 이미지</label>
+      <type>image</type>
+      <default></default>
+    </variable>
+    <variable>
+      <name>showSidebar</name>
+      <label>사이드바 표시 여부</label>
+      <type>select</type>
+      <option value="true">표시</option>
+      <option value="false">숨김</option>
+      <default>true</default>
+    </variable>
+  </variables>
+  <cover>
+    <!-- 홈 커버 기능을 사용하려면 여기에 아이템을 정의하세요 -->
+  </cover>
+</skin>
