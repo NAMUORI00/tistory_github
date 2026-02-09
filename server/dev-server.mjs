@@ -24,13 +24,13 @@ app.use('/images', express.static(path.join(SRC, 'images')));
 app.get('/', async (req, res) => {
     // 쿼리 파라미터 'target'이 있으면 우선 사용, 없으면 .env의 DEFAULT_TARGET 사용
     const target = req.query.target || DEFAULT_TARGET;
-    const blogId = extractBlogId(target);
+    const blogUrl = extractBlogId(target);
     const mockEnabled = req.query.mock !== 'off';
 
     try {
         const skinHtml = await fs.readFile(path.join(SRC, 'skin.html'), 'utf-8');
         const processedHtml = mockEnabled
-            ? await hydrate(skinHtml, blogId)
+            ? await hydrate(skinHtml, blogUrl)
             : skinHtml;
 
         // 제어 툴바 HTML
@@ -88,7 +88,7 @@ app.get('/', async (req, res) => {
                     <button class="tb-btn tb-btn-toggle ${mockEnabled ? 'active' : ''}" onclick="toggleMock()" title="Toggle mock data hydration">
                         ${mockEnabled ? '📦 Mock ON' : '📄 Mock OFF'}
                     </button>
-                    <small>src/skin.html → ${blogId}</small>
+                    <small>src/skin.html → ${blogUrl}</small>
                 </div>
             </div>
             <button id="dev-toolbar-tab" onclick="toggleToolbar()">▼ DevTools</button>
