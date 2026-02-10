@@ -29,11 +29,24 @@ app.get('/', async (req, res) => {
 
     try {
         const skinHtml = await fs.readFile(path.join(SRC, 'skin.html'), 'utf-8');
-        const processedHtml = mockEnabled
+        let processedHtml = mockEnabled
             ? await hydrate(skinHtml, blogUrl)
             : skinHtml;
 
-        // 제어 툴바 HTML
+        // 로컬 프리뷰: 블로그 URL → localhost URL로 변환 (탭 네비게이션이 로컬에서 동작하도록)
+        if (mockEnabled) {
+            const localBase = `http://localhost:${PORT}`;
+            const targetParam = `?target=${encodeURIComponent(blogUrl)}`;
+            const esc = blogUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // RegExp escape
+            // href="blogUrl/guestbook" → "localhost:PORT/?target=blogUrl" (프리뷰에서는 같은 페이지)
+            processedHtml = processedHtml
+                .replace(new RegExp(`href="${esc}/guestbook"`, 'g'), `href="${localBase}/${targetParam}&page=guestbook"`)
+                .replace(new RegExp(`href="${esc}/tag"`, 'g'), `href="${localBase}/${targetParam}&page=tag"`)
+                .replace(new RegExp(`href="${esc}/rss"`, 'g'), `href="${blogUrl}/rss"`)
+                .replace(new RegExp(`href="${esc}"`, 'g'), `href="${localBase}/${targetParam}"`)
+                .replace(new RegExp(`href='${esc}'`, 'g'), `href='${localBase}/${targetParam}'`);
+        }
+
         const controlToolbar = `
             <style>
                 #dev-toolbar {
