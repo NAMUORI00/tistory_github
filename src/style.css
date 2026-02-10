@@ -2080,8 +2080,28 @@ body,
 
 /* ═══════════════════════════════════════════════════════
    Page-Type Visibility (Tistory body_id 기반)
+   GitHub 스타일:
+   - Overview (index): README + Pinned + Posts 전부 표시
+   - Posts (category): 포스트 리스트만 (README/Pinned 숨김)
+   - Post (page): README(글 상세) + 댓글만 (Pinned/목록 숨김)
+   - Guestbook: 방명록만
+   - Tag: 태그 클라우드만
    ═══════════════════════════════════════════════════════ */
+
+/* Guestbook/Tag: README 숨김 */
 #tt-body-guestbook .readme-card,
 #tt-body-tag .readme-card {
+  display: none;
+}
+
+/* Posts(category): README와 Pinned 숨김 → 리스트만 표시 */
+#tt-body-category .readme-card,
+#tt-body-category .pinned-section {
+  display: none;
+}
+
+/* Post detail(page): Pinned와 리스트 숨김 → README(글 상세)만 표시 */
+#tt-body-page .pinned-section,
+#tt-body-page .post-list-section {
   display: none;
 }
