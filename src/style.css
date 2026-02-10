@@ -1059,6 +1059,7 @@ s_notice+s_rctps {
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-right: 8px;
 }
 
 /* All category links */
@@ -1066,7 +1067,6 @@ s_notice+s_rctps {
   color: var(--color-fg-muted);
   display: flex;
   align-items: center;
-  gap: 8px;
   font-size: 14px;
   padding: 5px 6px;
   border-radius: 6px;
