@@ -72,36 +72,107 @@ async function scrapeBlogData(blogUrl) {
         tags: [],       // { name, link, cloudClass }
         notices: [],    // { title, link }
         recentComments: [], // { name, desc, date, link }
+        categories: [],  // { name, link, count, children: [{ name, link, count }] }
         config: null,   // T.config object
+        blogApi: null,  // /m/api/blog/info JSON response
     };
+
+    // ── /m/api/blog/info JSON API (가장 안정적인 구조화된 데이터) ──
+    try {
+        const apiRes = await axios.get(`${blogUrl}/m/api/blog/info`, { timeout: 5000 });
+        if (apiRes.data && apiRes.data.data) {
+            data.blogApi = apiRes.data.data;
+            // API에서 공지사항 추출
+            if (data.blogApi.notice && data.blogApi.notice.title) {
+                data.notices.push({
+                    title: data.blogApi.notice.title,
+                    link: `${blogUrl}${data.blogApi.notice.link || '/notice'}`,
+                });
+            }
+        }
+    } catch (apiErr) {
+        // API 실패시 무시 — HTML 스크래핑으로 fallback
+    }
 
     try {
         const res = await axios.get(blogUrl, { timeout: 10000 });
         const html = res.data;
 
         // ── 방문자 수 파싱 ──
-        // 여러 스킨 구조를 지원하는 다중 패턴 매칭
-        // 패턴 1: visitor 영역 블럭에서 숫자 순서대로 추출 (구 스킨)
-        const visitorBlock = html.match(/<div[^>]*class="[^"]*visitor[^"]*"[\s\S]{0,3000}?<\/div>\s*<\/div>\s*<\/div>/);
-        if (visitorBlock) {
-            const nums = [...visitorBlock[0].matchAll(/>\s*([\d,]+)\s*</g)].map(m => m[1]);
-            if (nums.length >= 3) {
-                data.visitor.today = nums[0];
-                data.visitor.yesterday = nums[1];
-                data.visitor.total = nums[2];
-            } else if (nums.length >= 1) {
-                data.visitor.total = nums[nums.length - 1];
+        // 다양한 티스토리 스킨 구조를 지원하는 다중 패턴 매칭
+
+        // 패턴 A: hELLO 스킨 — <div class="today"><div class="cnt">N</div></div>
+        const helloCounterBlock = html.match(/<div[^>]*id="counter"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/i);
+        if (helloCounterBlock) {
+            const block = helloCounterBlock[0];
+            const totalM = block.match(/<div[^>]*class="[^"]*total[^"]*"[^>]*>[\s\S]*?<div[^>]*class="[^"]*cnt[^"]*"[^>]*>([\d,]+)/i);
+            const todayM = block.match(/<div[^>]*class="[^"]*today[^"]*"[^>]*>[\s\S]*?<div[^>]*class="[^"]*cnt[^"]*"[^>]*>([\d,]+)/i);
+            const yesterdayM = block.match(/<div[^>]*class="[^"]*yesterday[^"]*"[^>]*>[\s\S]*?<div[^>]*class="[^"]*cnt[^"]*"[^>]*>([\d,]+)/i);
+            if (totalM) data.visitor.total = totalM[1];
+            if (todayM) data.visitor.today = todayM[1];
+            if (yesterdayM) data.visitor.yesterday = yesterdayM[1];
+        }
+
+        // 패턴 B: 구형 스킨 — <span class="ff-h today visitor-date">N</span>
+        if (data.visitor.total === '0') {
+            const visitorBlock = html.match(/<div[^>]*class="[^"]*visitor[^"]*"[\s\S]{0,3000}?<\/div>\s*<\/div>\s*<\/div>/);
+            if (visitorBlock) {
+                const block = visitorBlock[0];
+                const todayM = block.match(/class="[^"]*today[^"]*"[^>]*>([\d,]+)/i);
+                const yesterdayM = block.match(/class="[^"]*yesterday[^"]*"[^>]*>([\d,]+)/i);
+                const totalM = block.match(/class="[^"]*total[^"]*"[^>]*>([\d,]+)/i);
+                if (todayM) data.visitor.today = todayM[1];
+                if (yesterdayM) data.visitor.yesterday = yesterdayM[1];
+                if (totalM) data.visitor.total = totalM[1];
             }
         }
-        // 패턴 2: 개별 class로 직접 매칭 (다양한 스킨)
-        const visitorPatterns = [
-            [/class="[^"]*(?:count_todaycount|today-count|visitor.*?today)[^"]*"[^>]*>([\d,]+)/i, 'today'],
-            [/class="[^"]*(?:count_yesterdaycount|yesterday-count|visitor.*?yesterday)[^"]*"[^>]*>([\d,]+)/i, 'yesterday'],
-            [/class="[^"]*(?:count_totalcount|total-count|visitor.*?total)[^"]*"[^>]*>([\d,]+)/i, 'total'],
-        ];
-        for (const [pattern, key] of visitorPatterns) {
-            const m = html.match(pattern);
-            if (m) data.visitor[key] = m[1];
+
+        // 패턴 C: 개별 class 직접 매칭 (fallback)
+        if (data.visitor.total === '0') {
+            const patterns = [
+                [/class="[^"]*(?:count[-_]?today|today[-_]?count)[^"]*"[^>]*>([\d,]+)/i, 'today'],
+                [/class="[^"]*(?:count[-_]?yesterday|yesterday[-_]?count)[^"]*"[^>]*>([\d,]+)/i, 'yesterday'],
+                [/class="[^"]*(?:count[-_]?total|total[-_]?count)[^"]*"[^>]*>([\d,]+)/i, 'total'],
+            ];
+            for (const [pattern, key] of patterns) {
+                const m = html.match(pattern);
+                if (m) data.visitor[key] = m[1];
+            }
+        }
+
+        // 패턴 D: window.T 또는 T.config에서 방문자수 추출
+        if (data.visitor.total === '0') {
+            const tConfigMatch = html.match(/window\.T\s*=\s*(\{[\s\S]*?\});/);
+            if (tConfigMatch) {
+                try {
+                    const todayM = tConfigMatch[1].match(/"today"\s*:\s*(\d+)/);
+                    const yesterdayM = tConfigMatch[1].match(/"yesterday"\s*:\s*(\d+)/);
+                    const totalM = tConfigMatch[1].match(/"total"\s*:\s*(\d+)/);
+                    if (todayM) data.visitor.today = todayM[1];
+                    if (yesterdayM) data.visitor.yesterday = yesterdayM[1];
+                    if (totalM) data.visitor.total = totalM[1];
+                } catch (e) { /* silent */ }
+            }
+        }
+
+        // 패턴 E: 텍스트 기반 — <p>Today : 168</p> (jojoldu 스킨 등)
+        if (data.visitor.total === '0') {
+            const todayTextM = html.match(/>Today\s*[:：]\s*([\d,]+)/i);
+            const yesterdayTextM = html.match(/>Yesterday\s*[:：]\s*([\d,]+)/i);
+            const totalClassM = html.match(/<p[^>]*class="[^"]*total[^"]*"[^>]*>([\d,]+)/i);
+            if (todayTextM) data.visitor.today = todayTextM[1];
+            if (yesterdayTextM) data.visitor.yesterday = yesterdayTextM[1];
+            if (totalClassM) data.visitor.total = totalClassM[1];
+        }
+
+        // 패턴 F: 최종 fallback — 한글 텍스트 기반 (오늘/어제/전체)
+        if (data.visitor.total === '0') {
+            const todayKrM = html.match(/>오늘\s*[:：]?\s*<[^>]*>([\d,]+)/i);
+            const yesterdayKrM = html.match(/>어제\s*[:：]?\s*<[^>]*>([\d,]+)/i);
+            const totalKrM = html.match(/>전체\s*[:：]?\s*<[^>]*>([\d,]+)/i);
+            if (todayKrM) data.visitor.today = todayKrM[1];
+            if (yesterdayKrM) data.visitor.yesterday = yesterdayKrM[1];
+            if (totalKrM) data.visitor.total = totalKrM[1];
         }
 
         // ── 태그 파싱 ──
@@ -178,6 +249,72 @@ async function scrapeBlogData(blogUrl) {
             }
         }
 
+        // ── 카테고리 파싱 (실제 블로그 HTML에서 전체 계층구조 추출) ──
+        // 패턴 A: 구형 스킨 — link_item / link_sub_item class 기반
+        // 전체 HTML에서 link_item(상위)과 link_sub_item(하위)을 순서대로 추출
+        const allCatLinks = [...html.matchAll(/<a[^>]*href="([^"]*\/category\/[^"]*)"[^>]*class="[^"]*(link_item|link_sub_item)[^"]*"[^>]*>\s*([^<]+?)\s*(?:<span[^>]*class="[^"]*c_cnt[^"]*"[^>]*>\((\d+)\)<\/span>)?\s*<\/a>/gi)];
+        if (allCatLinks.length > 0) {
+            let currentParent = null;
+            const seenParents = new Set();
+            for (const m of allCatLinks) {
+                const href = m[1].startsWith('/') ? `${blogUrl}${m[1]}` : m[1];
+                const type = m[2].toLowerCase();
+                const name = m[3].trim();
+                const count = m[4] ? parseInt(m[4]) : 0;
+                if (type === 'link_item') {
+                    // 중복 감지 — HTML에 같은 카테고리 목록이 여러 번 있을 수 있음 (PC/모바일 등)
+                    if (seenParents.has(name)) break;  // 두 번째 반복 시작 → 중단
+                    seenParents.add(name);
+                    currentParent = { name, link: href, count, children: [] };
+                    data.categories.push(currentParent);
+                } else if (type === 'link_sub_item' && currentParent) {
+                    currentParent.children.push({ name, link: href, count });
+                }
+            }
+        }
+
+        // 패턴 B: hELLO 스킨 — <a href="/category/Name"> 형태 (class 없음)
+        if (data.categories.length === 0) {
+            const helloLinks = [...html.matchAll(/<a[^>]*href="(\/category\/([^"]+))"[^>]*>([^<]+)<\/a>/g)];
+            const seenCats = new Set();
+            for (const m of helloLinks) {
+                const href = m[1];
+                const encodedPath = m[2];
+                const name = m[3].trim();
+                if (seenCats.has(href)) continue;
+                seenCats.add(href);
+                const parts = decodeURIComponent(encodedPath).split('/');
+                if (parts.length === 1) {
+                    // 상위 카테고리
+                    const existing = data.categories.find(c => c.name === name);
+                    if (!existing) {
+                        data.categories.push({
+                            name,
+                            link: `${blogUrl}${href}`,
+                            count: 0,
+                            children: [],
+                        });
+                    }
+                } else {
+                    // 서브카테고리
+                    const parentName = parts[0];
+                    let parent = data.categories.find(c => c.name === parentName);
+                    if (!parent) {
+                        parent = { name: parentName, link: `${blogUrl}/category/${encodeURIComponent(parentName)}`, count: 0, children: [] };
+                        data.categories.push(parent);
+                    }
+                    const childName = parts.slice(1).join('/');
+                    if (!parent.children.find(c => c.name === childName)) {
+                        parent.children.push({
+                            name: childName,
+                            link: `${blogUrl}${href}`,
+                            count: 0,
+                        });
+                    }
+                }
+            }
+        }
+
     } catch (err) {
         console.warn(`Blog scrape warning (${blogUrl}):`, err.message);
     }
@@ -204,24 +341,33 @@ export async function hydrate(html, blogUrl) {
 
         let output = html;
 
-        const blogTitle = channel.title[0];
-        const blogDesc = channel.description[0];
-        const blogImage = channel.image && channel.image[0] && channel.image[0].url
+        const api = scraped.blogApi; // /m/api/blog/info 데이터
+        const rssBlogTitle = channel.title[0];
+        const rssBlogDesc = channel.description[0];
+        const rssBlogImage = channel.image && channel.image[0] && channel.image[0].url
             ? channel.image[0].url[0]
             : `${blogUrl}/favicon.ico`;
 
         // ═══════════════════════════════════════════════════════
-        // 기본 정보 (RSS + 스크래핑 병합)
+        // 기본 정보: API(최우선) → T.config → RSS(fallback)
         // ═══════════════════════════════════════════════════════
+
+        const blogTitle = api?.blogTitle || rssBlogTitle;
+        const blogDesc = api?.blogDescription || rssBlogDesc;
+        const blogImage = api?.blogLogoURL || rssBlogImage;
+        const bloggerName = api?.blogName || scraped.config?.BLOG?.nickName || blogTitle;
 
         const mappings = {
             '\\[##_title_##\\]': blogTitle,
             '\\[##_desc_##\\]': blogDesc,
             '\\[##_blog_link_##\\]': blogUrl,
-            '\\[##_blogger_##\\]': scraped.config?.BLOG?.nickName || blogTitle,
+            '\\[##_blogger_##\\]': bloggerName,
             '\\[##_body_id_##\\]': 'tt-body-index',
             '\\[##_page_title_##\\]': blogTitle,
             '\\[##_image_##\\]': blogImage,
+            '\\[##_blog_image_##\\]': `<img src="${blogImage}" alt="${blogTitle}">`,
+            '\\[##_revenue_list_upper_##\\]': '',
+            '\\[##_revenue_list_lower_##\\]': '',
         };
 
         const linkMappings = {
@@ -230,6 +376,9 @@ export async function hydrate(html, blogUrl) {
             '\\[##_rss_url_##\\]': `${blogUrl}/rss`,
             '\\[##_article_rep_link_##\\]': items.length > 0 ? items[0].link[0] : blogUrl,
             '\\[##_list_conform_##\\]': blogTitle,
+            '\\[##_list_count_##\\]': String(items.length),
+            '\\[##_list_description_##\\]': blogDesc,
+            '\\[##_list_style_##\\]': 'list',
         };
 
         const searchMappings = {
@@ -255,18 +404,117 @@ export async function hydrate(html, blogUrl) {
         }
         output = output.replace(/\[##_blog_menu_##\]/g, menuLinks.join(' '));
 
-        // 카테고리 트리
-        let categoryHtml = '';
-        for (const [parent, children] of catMap) {
-            const parentUrl = `${blogUrl}/category/${encodeURIComponent(parent)}`;
-            if (children.size > 0) {
-                let subHtml = '';
-                for (const child of children) {
-                    subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent + '/' + child)}">${child}</a></li>`;
+        // 카테고리 트리 (컬러 도트 + 글 수 + 서브카테고리 트리)
+        // ── 스크래핑 카테고리와 RSS 카테고리 병합 ──
+        // 스크래핑된 카테고리가 있으면 이를 기본으로 사용하고 RSS 글 수로 보강
+        // 없으면 RSS 기반 catMap을 사용
+
+        // GitHub 스타일 언어 컬러 팔레트 (16색)
+        const catColors = [
+            '#3572A5', '#e34c26', '#f1e05a', '#563d7c', '#2b7489',
+            '#b07219', '#4F5D95', '#00ADD8', '#DA5B0B', '#178600',
+            '#89e051', '#438eff', '#A97BFF', '#e44b23', '#f34b7d', '#00B4AB'
+        ];
+
+        // RSS에서 각 카테고리별 실제 글 수 카운트
+        const rssCatCount = new Map();
+        items.forEach(item => {
+            if (item.category) {
+                const full = item.category[0].trim();
+                rssCatCount.set(full, (rssCatCount.get(full) || 0) + 1);
+                const parent = full.split('/')[0].trim();
+                if (parent !== full) {
+                    rssCatCount.set(parent, (rssCatCount.get(parent) || 0) + 1);
                 }
-                categoryHtml += `<li><a href="${parentUrl}">${parent}</a><ul>${subHtml}</ul></li>`;
-            } else {
-                categoryHtml += `<li><a href="${parentUrl}">${parent}</a></li>`;
+            }
+        });
+
+        let colorIdx = 0;
+        let categoryHtml = '';
+
+        if (scraped.categories.length > 0) {
+            // ── 스크래핑 기반 (전체 카테고리 포함, 0개 글도 표시) ──
+            for (const cat of scraped.categories) {
+                const color = catColors[colorIdx % catColors.length];
+                colorIdx++;
+                // RSS 글 수 or 스크래핑 글 수
+                const count = rssCatCount.get(cat.name) || cat.count;
+                const countBadge = `<span class="c_cnt">${count}</span>`;
+
+                if (cat.children && cat.children.length > 0) {
+                    let subHtml = '';
+                    let subColorIdx = 0;
+                    for (const child of cat.children) {
+                        const childFullKey = `${cat.name}/${child.name}`;
+                        const childCount = rssCatCount.get(childFullKey) || child.count;
+                        const childBadge = `<span class="c_cnt">${childCount}</span>`;
+                        const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
+                        subColorIdx++;
+                        const childLink = child.link || `${blogUrl}/category/${encodeURIComponent(childFullKey)}`;
+                        subHtml += `<li><a href="${childLink}"><span class="cat-dot" style="background:${subColor}"></span>${child.name}${childBadge}</a></li>`;
+                    }
+                    // RSS에만 있는 서브카테고리 추가
+                    for (const [key] of rssCatCount) {
+                        if (key.startsWith(cat.name + '/')) {
+                            const childName = key.substring(cat.name.length + 1);
+                            if (!cat.children.find(c => c.name === childName)) {
+                                const childCount = rssCatCount.get(key) || 0;
+                                const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
+                                subColorIdx++;
+                                subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(key)}"><span class="cat-dot" style="background:${subColor}"></span>${childName}<span class="c_cnt">${childCount}</span></a></li>`;
+                            }
+                        }
+                    }
+                    categoryHtml += `<li class="cat-parent"><a href="${cat.link}"><span class="cat-dot" style="background:${color}"></span>${cat.name}${countBadge}</a><ul>${subHtml}</ul></li>`;
+                } else {
+                    categoryHtml += `<li><a href="${cat.link}"><span class="cat-dot" style="background:${color}"></span>${cat.name}${countBadge}</a></li>`;
+                }
+            }
+            // RSS에만 있고 스크래핑에 없는 상위 카테고리 추가
+            for (const [parent] of catMap) {
+                if (!scraped.categories.find(c => c.name === parent)) {
+                    const color = catColors[colorIdx % catColors.length];
+                    colorIdx++;
+                    const count = rssCatCount.get(parent) || 0;
+                    const children = catMap.get(parent);
+                    if (children && children.size > 0) {
+                        let subHtml = '';
+                        let si = 0;
+                        for (const child of children) {
+                            const ck = `${parent}/${child}`;
+                            const cc = rssCatCount.get(ck) || 0;
+                            const sc = catColors[(colorIdx + si) % catColors.length];
+                            si++;
+                            subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(ck)}"><span class="cat-dot" style="background:${sc}"></span>${child}<span class="c_cnt">${cc}</span></a></li>`;
+                        }
+                        categoryHtml += `<li class="cat-parent"><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}<span class="c_cnt">${count}</span></a><ul>${subHtml}</ul></li>`;
+                    } else {
+                        categoryHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}<span class="c_cnt">${count}</span></a></li>`;
+                    }
+                }
+            }
+        } else {
+            // ── RSS 기반 (fallback) ──
+            for (const [parent, children] of catMap) {
+                const color = catColors[colorIdx % catColors.length];
+                colorIdx++;
+                const parentCount = rssCatCount.get(parent) || 0;
+                const countBadge = `<span class="c_cnt">${parentCount}</span>`;
+                if (children.size > 0) {
+                    let subHtml = '';
+                    let subColorIdx = 0;
+                    for (const child of children) {
+                        const childFullKey = `${parent}/${child}`;
+                        const childCount = rssCatCount.get(childFullKey) || 0;
+                        const childBadge = `<span class="c_cnt">${childCount}</span>`;
+                        const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
+                        subColorIdx++;
+                        subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent + '/' + child)}"><span class="cat-dot" style="background:${subColor}"></span>${child}${childBadge}</a></li>`;
+                    }
+                    categoryHtml += `<li class="cat-parent"><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}${countBadge}</a><ul>${subHtml}</ul></li>`;
+                } else {
+                    categoryHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}${countBadge}</a></li>`;
+                }
             }
         }
         output = output.replace(/\[##_category_list_##\]/g, `<ul>${categoryHtml}</ul>`);
@@ -285,18 +533,46 @@ export async function hydrate(html, blogUrl) {
         // 콘텐츠 영역 (RSS 데이터)
         // ═══════════════════════════════════════════════════════
 
+        // [리스트 그룹: s_list - 대표이미지]
+        const listImageRegex = /<s_list_image>([\s\S]*?)<\/s_list_image>/g;
+        if (blogImage) {
+            output = output.replace(listImageRegex, (m, t) => {
+                return t.replace(/\[##_list_image_##\]/g, blogImage);
+            });
+        } else {
+            output = output.replace(listImageRegex, '');
+        }
+        output = output.replace(/<\/?s_list>(?!_)/g, '');
+        output = output.replace(/<\/?s_list_empty>/g, '');
+
         // [목록 루프: s_list_rep]
         const listRepRegex = /<s_list_rep>([\s\S]*?)<\/s_list_rep>/g;
         output = output.replace(listRepRegex, (match, template) => {
             return items.map(item => {
                 let itemHtml = template;
+                const pubDate = new Date(item.pubDate[0]);
+                const title = item.title[0];
+                const catName = item.category ? item.category[0] : '전체';
+                const authorName = item.author ? item.author[0] : bloggerName;
+
                 itemHtml = itemHtml.replace(/\[##_list_rep_link_##\]/g, item.link[0]);
-                itemHtml = itemHtml.replace(/\[##_list_rep_title_##\]/g, item.title[0]);
-                itemHtml = itemHtml.replace(/\[##_list_rep_regdate_##\]/g, new Date(item.pubDate[0]).toLocaleDateString());
+                itemHtml = itemHtml.replace(/\[##_list_rep_title_##\]/g, title);
+                itemHtml = itemHtml.replace(/\[##_list_rep_title_text_##\]/g, title);
+                itemHtml = itemHtml.replace(/\[##_list_rep_regdate_##\]/g, `${pubDate.getFullYear()}.${String(pubDate.getMonth() + 1).padStart(2, '0')}.${String(pubDate.getDate()).padStart(2, '0')}`);
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_year_##\]/g, String(pubDate.getFullYear()));
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_month_##\]/g, String(pubDate.getMonth() + 1).padStart(2, '0'));
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_day_##\]/g, String(pubDate.getDate()).padStart(2, '0'));
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_hour_##\]/g, String(pubDate.getHours()).padStart(2, '0'));
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_minute_##\]/g, String(pubDate.getMinutes()).padStart(2, '0'));
+                itemHtml = itemHtml.replace(/\[##_list_rep_date_second_##\]/g, String(pubDate.getSeconds()).padStart(2, '0'));
                 itemHtml = itemHtml.replace(/\[##_list_rep_summary_##\]/g, item.description[0].replace(/<[^>]*>?/gm, '').substring(0, 150) + '...');
-                itemHtml = itemHtml.replace(/\[##_list_rep_category_##\]/g, item.category ? item.category[0] : '전체');
+                itemHtml = itemHtml.replace(/\[##_list_rep_category_##\]/g, catName);
+                itemHtml = itemHtml.replace(/\[##_list_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(catName)}`);
+                itemHtml = itemHtml.replace(/\[##_list_rep_rp_cnt_##\]/g, '0');
+                itemHtml = itemHtml.replace(/\[##_list_rep_author_##\]/g, authorName);
 
                 const thumbUrl = extractFirstImage(item);
+                itemHtml = itemHtml.replace(/\[##_list_rep_thumbnail_url_##\]/g, thumbUrl || '');
                 const thumbRegex = /<s_list_rep_thumbnail>([\s\S]*?)<\/s_list_rep_thumbnail>/g;
                 if (thumbUrl) {
                     itemHtml = itemHtml.replace(thumbRegex, (m, t) => {
@@ -312,12 +588,51 @@ export async function hydrate(html, blogUrl) {
         // [본문 처리: s_article_rep]
         if (items.length > 0) {
             const first = items[0];
+            const firstDate = new Date(first.pubDate[0]);
+            const firstCat = first.category ? first.category[0] : '전체';
+            const firstAuthor = first.author ? first.author[0] : bloggerName;
+            const firstThumb = extractFirstImage(first);
+
             output = output.replace(/\[##_article_rep_title_##\]/g, first.title[0]);
             output = output.replace(/\[##_article_rep_desc_##\]/g, first.description[0]);
-            output = output.replace(/\[##_article_rep_category_##\]/g, first.category ? first.category[0] : '전체');
-            output = output.replace(/\[##_article_rep_date_##\]/g, new Date(first.pubDate[0]).toLocaleDateString());
-            output = output.replace(/\[##_article_rep_author_##\]/g, first.author ? first.author[0] : (scraped.config?.BLOG?.nickName || blogTitle));
+            output = output.replace(/\[##_article_rep_category_##\]/g, firstCat);
+            output = output.replace(/\[##_article_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(firstCat)}`);
+            output = output.replace(/\[##_article_rep_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}. ${String(firstDate.getHours()).padStart(2, '0')}:${String(firstDate.getMinutes()).padStart(2, '0')}`);
+            output = output.replace(/\[##_article_rep_simple_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}.`);
+            output = output.replace(/\[##_article_rep_date_year_##\]/g, String(firstDate.getFullYear()));
+            output = output.replace(/\[##_article_rep_date_month_##\]/g, String(firstDate.getMonth() + 1).padStart(2, '0'));
+            output = output.replace(/\[##_article_rep_date_day_##\]/g, String(firstDate.getDate()).padStart(2, '0'));
+            output = output.replace(/\[##_article_rep_date_hour_##\]/g, String(firstDate.getHours()).padStart(2, '0'));
+            output = output.replace(/\[##_article_rep_date_minute_##\]/g, String(firstDate.getMinutes()).padStart(2, '0'));
+            output = output.replace(/\[##_article_rep_date_second_##\]/g, String(firstDate.getSeconds()).padStart(2, '0'));
+            output = output.replace(/\[##_article_rep_author_##\]/g, firstAuthor);
+            output = output.replace(/\[##_article_rep_thumbnail_url_##\]/g, firstThumb || '');
+            output = output.replace(/\[##_article_rep_thumbnail_raw_url_##\]/g, firstThumb || '');
+
+            // s_article_rep_thumbnail 그룹
+            const artThumbRegex = /<s_article_rep_thumbnail>([\s\S]*?)<\/s_article_rep_thumbnail>/g;
+            if (firstThumb) {
+                output = output.replace(artThumbRegex, (m, t) => t);
+            } else {
+                output = output.replace(artThumbRegex, '');
+            }
         }
+        output = output.replace(/<\/?s_article_rep>(?!_)/g, '');
+
+        // [글 관리 기능: s_ad_div] — 프리뷰 모드에서 구조 유지
+        const adDivRegex = /<s_ad_div>([\s\S]*?)<\/s_ad_div>/g;
+        output = output.replace(adDivRegex, (match, template) => {
+            let h = template;
+            const editLink = items.length > 0 ? `${blogUrl}/manage/newpost/${items[0].link[0].split('/').pop()}` : '#';
+            h = h.replace(/\[##_s_ad_m_link_##\]/g, editLink);
+            h = h.replace(/\[##_s_ad_m_onclick_##\]/g, `window.open('${editLink}')`);
+            h = h.replace(/\[##_s_ad_s1_label_##\]/g, '공개');
+            h = h.replace(/\[##_s_ad_s2_onclick_##\]/g, "alert('프리뷰 모드')");
+            h = h.replace(/\[##_s_ad_s2_label_##\]/g, '비공개');
+            h = h.replace(/\[##_s_ad_t_onclick_##\]/g, "alert('프리뷰 모드')");
+            h = h.replace(/\[##_s_ad_d_onclick_##\]/g, "alert('프리뷰 모드')");
+            return h;
+        });
 
         // [태그 라벨 (글 하단 태그)] — RSS 카테고리 사용
         const tagLabelRegex = /<s_tag_label>([\s\S]*?)<\/s_tag_label>/g;
@@ -453,18 +768,51 @@ export async function hydrate(html, blogUrl) {
         output = output.replace(/\[##_archive_##\]/g, archiveHtml);
 
         // ═══════════════════════════════════════════════════════
-        // 댓글 & 방명록 — RSS/스크래핑 모두 개별 글의 댓글 제공 불가
-        // 구조만 유지하고 목록은 비움
+        // 댓글 & 방명록
         // ═══════════════════════════════════════════════════════
 
-        output = output.replace(/<s_rp_rep>[\s\S]*?<\/s_rp_rep>/g, '');
+        // [댓글 리스트] — 스크래핑 최근 댓글을 활용해 구조 채움
+        const rpRepRegex = /<s_rp_rep>([\s\S]*?)<\/s_rp_rep>/g;
+        output = output.replace(rpRepRegex, (match, template) => {
+            if (scraped.recentComments.length === 0) return '';
+            return scraped.recentComments.slice(0, 5).map((c, idx) => {
+                let h = template;
+                h = h.replace(/\[##_rp_rep_id_##\]/g, String(idx + 1));
+                h = h.replace(/\[##_rp_rep_name_##\]/g, c.name || '방문자');
+                h = h.replace(/\[##_rp_rep_comment_##\]/g, c.desc);
+                h = h.replace(/\[##_rp_rep_date_##\]/g, c.date);
+                h = h.replace(/\[##_rp_rep_link_##\]/g, c.link);
+                h = h.replace(/\[##_rp_rep_logo_##\]/g, '');
+                h = h.replace(/\[##_rp_rep_class_##\]/g, '');
+                h = h.replace(/\[##_rp_rep_onclick_delete_##\]/g, "alert('프리뷰 모드')");
+                // 대댓글 영역 제거
+                h = h.replace(/<s_rp2_container>[\s\S]*?<\/s_rp2_container>/g, '');
+                return h;
+            }).join('');
+        });
         output = output.replace(/<s_rp2_rep>[\s\S]*?<\/s_rp2_rep>/g, '');
         output = output.replace(/<\/?s_rp_container>/g, '');
         output = output.replace(/<\/?s_rp2_container>/g, '');
         output = output.replace(/<\/?s_rp>/g, '');
         output = output.replace(/\[##_comment_group_##\]/g, '<div id="tt-comment-area"></div>');
 
-        output = output.replace(/<s_guest_rep>[\s\S]*?<\/s_guest_rep>/g, '');
+        // [방명록 리스트] — 스크래핑 최근 댓글을 방명록으로 재활용
+        const guestRepRegex = /<s_guest_rep>([\s\S]*?)<\/s_guest_rep>/g;
+        output = output.replace(guestRepRegex, (match, template) => {
+            if (scraped.recentComments.length === 0) return '';
+            return scraped.recentComments.slice(0, 5).map((c, idx) => {
+                let h = template;
+                h = h.replace(/\[##_guest_rep_id_##\]/g, String(idx + 1));
+                h = h.replace(/\[##_guest_rep_name_##\]/g, c.name || '방문자');
+                h = h.replace(/\[##_guest_rep_comment_##\]/g, c.desc);
+                h = h.replace(/\[##_guest_rep_date_##\]/g, c.date);
+                h = h.replace(/\[##_guest_rep_logo_##\]/g, '');
+                h = h.replace(/\[##_guest_rep_class_##\]/g, '');
+                h = h.replace(/\[##_guest_rep_onclick_delete_##\]/g, "alert('프리뷰 모드')");
+                h = h.replace(/<s_guest_reply_container>[\s\S]*?<\/s_guest_reply_container>/g, '');
+                return h;
+            }).join('');
+        });
         output = output.replace(/<s_guest_reply_rep>[\s\S]*?<\/s_guest_reply_rep>/g, '');
         output = output.replace(/<\/?s_guest_container>/g, '');
         output = output.replace(/<\/?s_guest_reply_container>/g, '');
@@ -586,10 +934,12 @@ export async function hydrate(html, blogUrl) {
         });
         output = output.replace(/<\/?s_article_related>/g, '');
         output = output.replace(/<\/?s_article_related_rep_thumbnail>/g, '');
-        output = output.replace(/\[##_article_rep_category_link_##\]/g,
-            items.length > 0 && items[0].category
-                ? `${blogUrl}/category/${encodeURIComponent(items[0].category[0])}`
-                : blogUrl);
+        // ═══════════════════════════════════════════════════════
+        // 보호글 / 페이지 — 구조 유지
+        // ═══════════════════════════════════════════════════════
+        output = output.replace(/<\/?s_article_protected>/g, '');
+        output = output.replace(/\[##_article_password_##\]/g, 'password');
+        output = output.replace(/\[##_article_protected_onclick_submit_##\]/g, "alert('프리뷰 모드')");
 
         // ═══════════════════════════════════════════════════════
         // 최종 정리 — 미처리 치환자 제거
@@ -600,6 +950,6 @@ export async function hydrate(html, blogUrl) {
         return output;
     } catch (err) {
         console.error('Hydrate Error:', err.message);
-        return html + `<div style="background:red; color:white; padding:10px;">RSS 로드 실패: ${blogId}</div>`;
+        return html + `<div style="background:red; color:white; padding:10px;">RSS 로드 실패: ${blogUrl}</div>`;
     }
 }
