@@ -327,10 +327,11 @@ async function scrapeBlogData(blogUrl) {
  * 데이터 소스: RSS + 블로그 HTML 직접 파싱 (병합)
  * @param {string} html - skin.html 원본
  * @param {string} blogUrl - 블로그 URL
- * @param {string} pageType - 페이지 타입: 'index' | 'guestbook' | 'tag' | 'post'
+ * @param {string} pageType - 페이지 타입: 'index' | 'guestbook' | 'tag' | 'post' | 'category'
  *   Tistory는 페이지 타입에 따라 <s_guest>, <s_tag> 등의 블록을 선택적으로 렌더링합니다.
+ * @param {string} [entryId] - 글 상세 보기 시 글 ID (예: '57' 또는 'entry-slug')
  */
-export async function hydrate(html, blogUrl, pageType = 'index') {
+export async function hydrate(html, blogUrl, pageType = 'index', entryId = null) {
     try {
         // blogUrl은 이미 전체 URL (extractBlogId가 반환한 형태)
         // RSS와 블로그 HTML을 동시에 가져옴
@@ -641,8 +642,18 @@ export async function hydrate(html, blogUrl, pageType = 'index') {
         });
 
         // [본문 처리: s_article_rep]
-        if (items.length > 0) {
-            const first = items[0];
+        // entryId가 있으면 해당 글, 없으면 첫 번째 글
+        let targetItem = items[0];
+        if (entryId && items.length > 0) {
+            const found = items.find(it => {
+                const link = it.link ? it.link[0] : '';
+                // /57 형태 또는 /entry/slug 형태 매칭
+                return link.endsWith('/' + entryId) || link.includes('/entry/' + decodeURIComponent(entryId));
+            });
+            if (found) targetItem = found;
+        }
+        if (targetItem) {
+            const first = targetItem;
             const firstDate = new Date(first.pubDate[0]);
             const firstCat = first.category ? first.category[0] : '전체';
             const firstAuthor = first.author ? first.author[0] : bloggerName;

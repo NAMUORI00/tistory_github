@@ -30,7 +30,7 @@ app.get('/', async (req, res) => {
     try {
         const skinHtml = await fs.readFile(path.join(SRC, 'skin.html'), 'utf-8');
         let processedHtml = mockEnabled
-            ? await hydrate(skinHtml, blogUrl, req.query.page || 'index')
+            ? await hydrate(skinHtml, blogUrl, req.query.page || 'index', req.query.entry || null)
             : skinHtml;
 
         // 로컬 프리뷰: 블로그 URL → localhost URL로 변환 (탭 네비게이션이 로컬에서 동작하도록)
@@ -38,13 +38,27 @@ app.get('/', async (req, res) => {
             const localBase = `http://localhost:${PORT}`;
             const targetParam = `?target=${encodeURIComponent(blogUrl)}`;
             const esc = blogUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // RegExp escape
-            // href="blogUrl/guestbook" → "localhost:PORT/?target=blogUrl" (프리뷰에서는 같은 페이지)
+
             processedHtml = processedHtml
+                // 1) Guestbook/Tag 탭
                 .replace(new RegExp(`href="${esc}/guestbook"`, 'g'), `href="${localBase}/${targetParam}&page=guestbook"`)
                 .replace(new RegExp(`href="${esc}/tag"`, 'g'), `href="${localBase}/${targetParam}&page=tag"`)
+                // 2) RSS는 원본 유지
                 .replace(new RegExp(`href="${esc}/rss"`, 'g'), `href="${blogUrl}/rss"`)
+                // 3) 카테고리 링크: /category/XXX → 로컬 프리뷰
+                .replace(new RegExp(`href="${esc}/category/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=category"`)
+                // 4) 개별 글 링크: /123 또는 /entry/title → 로컬 프리뷰 글 상세
+                .replace(new RegExp(`href="${esc}/(\\d+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
+                .replace(new RegExp(`href="${esc}/entry/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
+                // 5) 블로그 메인 URL → Overview
                 .replace(new RegExp(`href="${esc}"`, 'g'), `href="${localBase}/${targetParam}"`)
                 .replace(new RegExp(`href='${esc}'`, 'g'), `href='${localBase}/${targetParam}'`);
+
+            // 6) Posts 탭: Overview와 동일 URL이므로 title 속성으로 구분하여 page=category 추가
+            processedHtml = processedHtml.replace(
+                /href="([^"]*)" title="Posts"/g,
+                `href="${localBase}/${targetParam}&page=category" title="Posts"`
+            );
         }
 
         const controlToolbar = `
