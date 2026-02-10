@@ -1027,15 +1027,18 @@ s_notice+s_rctps {
   margin: 0;
 }
 
-/* Nested sub-list */
+/* Nested sub-list — 기본 펼쳐짐 (Tistory inline 스타일 override 포함) */
 .category-list ul ul {
   margin-left: 12px;
   padding-left: 12px;
   border-left: 1px solid var(--color-border-muted);
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.2s ease;
-  max-height: 800px;
+  max-height: 2000px;
   opacity: 1;
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
 }
 
 /* Collapsed state (toggled via JS) */
@@ -1105,12 +1108,12 @@ s_notice+s_rctps {
   content: none;
 }
 
-/* Sub-category items */
+/* Sub-category items (no dot, text + count only) */
 .category-list ul ul a {
   font-size: 13px;
   color: var(--color-fg-muted);
   font-weight: 400;
-  padding: 4px 6px;
+  padding: 4px 6px 4px 8px;
 }
 
 .category-list ul ul a::before {

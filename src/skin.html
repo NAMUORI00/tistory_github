@@ -370,7 +370,8 @@
                             <s_article_rep>
                                 <h2 style="margin-top:0; padding-top:0;">[##_article_rep_title_##]</h2>
                                 <div class="entry-meta" style="margin-bottom:16px;">
-                                    <span class="meta-cat">[##_article_rep_category_##]</span>
+                                    <span class="meta-cat"
+                                        style="background:[##_article_rep_category_color_##];">[##_article_rep_category_##]</span>
                                     <span>[##_article_rep_author_##]</span>
                                     <span>·</span>
                                     <span>[##_article_rep_date_##]</span>
@@ -500,7 +501,8 @@
                                         <p class="repo-desc">[##_list_rep_summary_##]</p>
                                         <div class="repo-meta">
                                             <span class="repo-meta-item">
-                                                <span class="lang-dot" style="background:#f1e05a;"></span>
+                                                <span class="lang-dot"
+                                                    style="background:[##_list_rep_category_color_##];"></span>
                                                 [##_list_rep_category_##]
                                             </span>
                                             <span class="repo-meta-item">📅 [##_list_rep_regdate_##]</span>
@@ -728,7 +730,7 @@
                             '</div>' +
                             '<p class="pinned-repo-desc">' + (desc ? desc.textContent : '') + '</p>' +
                             '<div class="pinned-repo-meta">' +
-                            '<span class="pinned-repo-meta-item"><span class="lang-dot" style="background:#f1e05a;"></span> ' + (tag ? tag.textContent : '') + '</span>' +
+                            '<span class="pinned-repo-meta-item"><span class="lang-dot" style="background:' + (card.querySelector('.lang-dot') ? card.querySelector('.lang-dot').style.background : '#f1e05a') + ';"></span> ' + (tag ? tag.textContent : '') + '</span>' +
                             '</div>';
                         grid.appendChild(pinned);
                     }
@@ -745,7 +747,7 @@
                 var li = parents[i];
                 if (li.querySelector(':scope > ul')) {
                     li.classList.add('cat-parent');
-                    li.classList.add('cat-collapsed');
+                    // 기본 열림 유지 — cat-collapsed 추가하지 않음
                     li.querySelector(':scope > a').addEventListener('click', function (e) {
                         e.preventDefault();
                         this.parentElement.classList.toggle('cat-collapsed');

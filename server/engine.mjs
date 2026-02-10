@@ -443,15 +443,12 @@ export async function hydrate(html, blogUrl) {
 
                 if (cat.children && cat.children.length > 0) {
                     let subHtml = '';
-                    let subColorIdx = 0;
                     for (const child of cat.children) {
                         const childFullKey = `${cat.name}/${child.name}`;
                         const childCount = rssCatCount.get(childFullKey) || child.count;
                         const childBadge = `<span class="c_cnt">${childCount}</span>`;
-                        const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
-                        subColorIdx++;
                         const childLink = child.link || `${blogUrl}/category/${encodeURIComponent(childFullKey)}`;
-                        subHtml += `<li><a href="${childLink}"><span class="cat-dot" style="background:${subColor}"></span>${child.name}${childBadge}</a></li>`;
+                        subHtml += `<li><a href="${childLink}">${child.name}${childBadge}</a></li>`;
                     }
                     // RSS에만 있는 서브카테고리 추가
                     for (const [key] of rssCatCount) {
@@ -459,9 +456,7 @@ export async function hydrate(html, blogUrl) {
                             const childName = key.substring(cat.name.length + 1);
                             if (!cat.children.find(c => c.name === childName)) {
                                 const childCount = rssCatCount.get(key) || 0;
-                                const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
-                                subColorIdx++;
-                                subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(key)}"><span class="cat-dot" style="background:${subColor}"></span>${childName}<span class="c_cnt">${childCount}</span></a></li>`;
+                                subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(key)}">${childName}<span class="c_cnt">${childCount}</span></a></li>`;
                             }
                         }
                     }
@@ -479,13 +474,10 @@ export async function hydrate(html, blogUrl) {
                     const children = catMap.get(parent);
                     if (children && children.size > 0) {
                         let subHtml = '';
-                        let si = 0;
                         for (const child of children) {
                             const ck = `${parent}/${child}`;
                             const cc = rssCatCount.get(ck) || 0;
-                            const sc = catColors[(colorIdx + si) % catColors.length];
-                            si++;
-                            subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(ck)}"><span class="cat-dot" style="background:${sc}"></span>${child}<span class="c_cnt">${cc}</span></a></li>`;
+                            subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(ck)}">${child}<span class="c_cnt">${cc}</span></a></li>`;
                         }
                         categoryHtml += `<li class="cat-parent"><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}<span class="c_cnt">${count}</span></a><ul>${subHtml}</ul></li>`;
                     } else {
@@ -502,14 +494,11 @@ export async function hydrate(html, blogUrl) {
                 const countBadge = `<span class="c_cnt">${parentCount}</span>`;
                 if (children.size > 0) {
                     let subHtml = '';
-                    let subColorIdx = 0;
                     for (const child of children) {
                         const childFullKey = `${parent}/${child}`;
                         const childCount = rssCatCount.get(childFullKey) || 0;
                         const childBadge = `<span class="c_cnt">${childCount}</span>`;
-                        const subColor = catColors[(colorIdx + subColorIdx) % catColors.length];
-                        subColorIdx++;
-                        subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent + '/' + child)}"><span class="cat-dot" style="background:${subColor}"></span>${child}${childBadge}</a></li>`;
+                        subHtml += `<li><a href="${blogUrl}/category/${encodeURIComponent(parent + '/' + child)}">${child}${childBadge}</a></li>`;
                     }
                     categoryHtml += `<li class="cat-parent"><a href="${blogUrl}/category/${encodeURIComponent(parent)}"><span class="cat-dot" style="background:${color}"></span>${parent}${countBadge}</a><ul>${subHtml}</ul></li>`;
                 } else {
@@ -518,6 +507,38 @@ export async function hydrate(html, blogUrl) {
             }
         }
         output = output.replace(/\[##_category_list_##\]/g, `<ul>${categoryHtml}</ul>`);
+
+        // ── 카테고리→색상 매핑 생성 (포스트 목록/본문에서 동일 색상 사용) ──
+        const categoryColorMap = new Map();
+        let mapColorIdx = 0;
+        const allCats = scraped.categories.length > 0 ? scraped.categories : [];
+        // 스크래핑 기반 카테고리
+        for (const cat of allCats) {
+            const color = catColors[mapColorIdx % catColors.length];
+            mapColorIdx++;
+            categoryColorMap.set(cat.name, color);
+            if (cat.children) {
+                for (const child of cat.children) {
+                    categoryColorMap.set(`${cat.name}/${child.name}`, color);
+                    categoryColorMap.set(child.name, color);
+                }
+            }
+        }
+        // RSS 기반 카테고리 (스크래핑에 없는 것)
+        for (const [parent] of catMap) {
+            if (!categoryColorMap.has(parent)) {
+                const color = catColors[mapColorIdx % catColors.length];
+                mapColorIdx++;
+                categoryColorMap.set(parent, color);
+                const children = catMap.get(parent);
+                if (children) {
+                    for (const child of children) {
+                        categoryColorMap.set(`${parent}/${child}`, color);
+                        categoryColorMap.set(child, color);
+                    }
+                }
+            }
+        }
 
         // 모든 매핑 적용
         for (const [tag, val] of Object.entries({ ...mappings, ...linkMappings, ...searchMappings })) {
@@ -568,6 +589,9 @@ export async function hydrate(html, blogUrl) {
                 itemHtml = itemHtml.replace(/\[##_list_rep_summary_##\]/g, item.description[0].replace(/<[^>]*>?/gm, '').substring(0, 150) + '...');
                 itemHtml = itemHtml.replace(/\[##_list_rep_category_##\]/g, catName);
                 itemHtml = itemHtml.replace(/\[##_list_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(catName)}`);
+                // 카테고리 색상 조회 (부모 카테고리 이름으로 fallback)
+                const catColor = categoryColorMap.get(catName) || categoryColorMap.get(catName.split('/')[0]) || '#f1e05a';
+                itemHtml = itemHtml.replace(/\[##_list_rep_category_color_##\]/g, catColor);
                 itemHtml = itemHtml.replace(/\[##_list_rep_rp_cnt_##\]/g, '0');
                 itemHtml = itemHtml.replace(/\[##_list_rep_author_##\]/g, authorName);
 
@@ -597,6 +621,9 @@ export async function hydrate(html, blogUrl) {
             output = output.replace(/\[##_article_rep_desc_##\]/g, first.description[0]);
             output = output.replace(/\[##_article_rep_category_##\]/g, firstCat);
             output = output.replace(/\[##_article_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(firstCat)}`);
+            // 본문 카테고리 색상
+            const articleCatColor = categoryColorMap.get(firstCat) || categoryColorMap.get(firstCat.split('/')[0]) || '#f1e05a';
+            output = output.replace(/\[##_article_rep_category_color_##\]/g, articleCatColor);
             output = output.replace(/\[##_article_rep_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}. ${String(firstDate.getHours()).padStart(2, '0')}:${String(firstDate.getMinutes()).padStart(2, '0')}`);
             output = output.replace(/\[##_article_rep_simple_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}.`);
             output = output.replace(/\[##_article_rep_date_year_##\]/g, String(firstDate.getFullYear()));
