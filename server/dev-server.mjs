@@ -45,8 +45,9 @@ app.get('/', async (req, res) => {
                 .replace(new RegExp(`href="${esc}/tag"`, 'g'), `href="${localBase}/${targetParam}&page=tag"`)
                 // 2) RSS는 원본 유지
                 .replace(new RegExp(`href="${esc}/rss"`, 'g'), `href="${blogUrl}/rss"`)
-                // 3) 카테고리 링크: /category/XXX → 로컬 프리뷰
+                // 3) 카테고리 링크: /category 또는 /category/XXX → 로컬 프리뷰
                 .replace(new RegExp(`href="${esc}/category/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=category"`)
+                .replace(new RegExp(`href="${esc}/category"`, 'g'), `href="${localBase}/${targetParam}&page=category"`)
                 // 4) 개별 글 링크: /123 또는 /entry/title → 로컬 프리뷰 글 상세
                 .replace(new RegExp(`href="${esc}/(\\d+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
                 .replace(new RegExp(`href="${esc}/entry/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
@@ -54,11 +55,6 @@ app.get('/', async (req, res) => {
                 .replace(new RegExp(`href="${esc}"`, 'g'), `href="${localBase}/${targetParam}"`)
                 .replace(new RegExp(`href='${esc}'`, 'g'), `href='${localBase}/${targetParam}'`);
 
-            // 6) Posts 탭: Overview와 동일 URL이므로 title 속성으로 구분하여 page=category 추가
-            processedHtml = processedHtml.replace(
-                /href="([^"]*)" title="Posts"/g,
-                `href="${localBase}/${targetParam}&page=category" title="Posts"`
-            );
         }
 
         const controlToolbar = `
