@@ -430,6 +430,16 @@ img {
   background: var(--color-btn-hover-bg);
 }
 
+.profile-follow-btn.following {
+  background: var(--color-accent-emphasis);
+  color: #fff;
+  border-color: var(--color-accent-emphasis);
+}
+
+.profile-follow-btn.following:hover {
+  opacity: 0.9;
+}
+
 .profile-details {
   margin-top: 16px;
   display: flex;
@@ -1362,6 +1372,7 @@ s_notice+s_rctps {
   height: 12px;
   border-radius: 50%;
   display: inline-block;
+  background: var(--color-accent-emphasis, #f1e05a);
 }
 
 /* --- Post List (for /post page) --- */

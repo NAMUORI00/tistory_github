@@ -120,7 +120,8 @@
                     <div class="profile-username">[##_title_##]</div>
                     <p class="profile-bio">[##_desc_##]</p>
 
-                    <button class="profile-follow-btn" onclick="location.href='[##_blog_link_##]'">
+                    <button class="profile-follow-btn" id="followBtn"
+                        onclick="if(window.TistoryBlog&&TistoryBlog.toggleSubscribe){TistoryBlog.toggleSubscribe();return false;}location.href='[##_blog_link_##]'">
                         <svg style="width:16px;height:16px;vertical-align:-3px;fill:currentColor;margin-right:4px;"
                             viewBox="0 0 16 16">
                             <path
@@ -370,8 +371,7 @@
                             <s_article_rep>
                                 <h2 style="margin-top:0; padding-top:0;">[##_article_rep_title_##]</h2>
                                 <div class="entry-meta" style="margin-bottom:16px;">
-                                    <span class="meta-cat"
-                                        style="background:[##_article_rep_category_color_##];">[##_article_rep_category_##]</span>
+                                    <span class="meta-cat">[##_article_rep_category_##]</span>
                                     <span>[##_article_rep_author_##]</span>
                                     <span>·</span>
                                     <span>[##_article_rep_date_##]</span>
@@ -417,11 +417,9 @@
                                                             <a href="[##_rp_rep_link_##]" title="링크">🔗</a>
                                                             <a href="#" onclick="[##_rp_rep_onclick_delete_##]"
                                                                 title="수정/삭제">✏️</a>
-                                                            <a href="#" onclick="[##_rp_rep_onclick_reply_##]"
-                                                                title="답글">💬</a>
                                                         </span>
                                                     </div>
-                                                    <p class="comment-text">[##_rp_rep_desc_##]</p>
+                                                    <p class="comment-text">[##_rp_rep_comment_##]</p>
                                                 </div>
                                                 <s_rp2_container>
                                                     <div class="comment-replies">
@@ -501,8 +499,7 @@
                                         <p class="repo-desc">[##_list_rep_summary_##]</p>
                                         <div class="repo-meta">
                                             <span class="repo-meta-item">
-                                                <span class="lang-dot"
-                                                    style="background:[##_list_rep_category_color_##];"></span>
+                                                <span class="lang-dot"></span>
                                                 [##_list_rep_category_##]
                                             </span>
                                             <span class="repo-meta-item">📅 [##_list_rep_regdate_##]</span>
@@ -528,8 +525,8 @@
                                 <label for="[##_article_password_##]" class="visually-hidden">Password</label>
                                 <input type="password" maxlength="16" id="[##_article_password_##]"
                                     name="[##_article_password_##]" placeholder="Enter password…"
-                                    onkeydown="if(event.keyCode==13)[##_article_dissolve_##]">
-                                <button type="button" onclick="[##_article_dissolve_##]">Unlock</button>
+                                    onkeydown="if(event.keyCode==13)[##_article_protected_onclick_submit_##]">
+                                <button type="button" onclick="[##_article_protected_onclick_submit_##]">Unlock</button>
                             </div>
                         </div>
                     </s_article_protected>
@@ -610,11 +607,9 @@
                                                     <span class="comment-actions">
                                                         <a href="#" onclick="[##_guest_rep_onclick_delete_##]"
                                                             title="수정/삭제">✏️</a>
-                                                        <a href="#" onclick="[##_guest_rep_onclick_reply_##]"
-                                                            title="답글">💬</a>
                                                     </span>
                                                 </div>
-                                                <p class="comment-text">[##_guest_rep_desc_##]</p>
+                                                <p class="comment-text">[##_guest_rep_comment_##]</p>
                                             </div>
                                             <s_guest_reply_container>
                                                 <div class="comment-replies">
@@ -636,7 +631,7 @@
                                                                             title="수정/삭제">✏️</a>
                                                                     </span>
                                                                 </div>
-                                                                <p class="comment-text">[##_guest_rep_desc_##]</p>
+                                                                <p class="comment-text">[##_guest_rep_comment_##]</p>
                                                             </div>
                                                         </div>
                                                     </s_guest_reply_rep>
@@ -646,7 +641,7 @@
                                     </s_guest_rep>
                                 </div>
                             </s_guest_container>
-                            <div class="paging">[##_guest_pagination_##]</div>
+
                         </div>
                     </s_guest>
 
@@ -736,6 +731,32 @@
                     }
                 }
             });
+
+            /* ═══ Under-Nav Active Tab Detection ═══ */
+            (function () {
+                var bodyId = document.body.id || '';
+                var tabs = document.querySelectorAll('.under-nav-item');
+                if (!tabs.length) return;
+                // Remove all active
+                for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+                // Detect page type from body_id
+                var activeIdx = 0; // default: Overview
+                if (bodyId === 'tt-body-guestbook') activeIdx = 2;
+                else if (bodyId === 'tt-body-tag') activeIdx = 3;
+                else if (bodyId === 'tt-body-category' || bodyId === 'tt-body-search') activeIdx = 1;
+                else if (window.location.pathname !== '/' && bodyId === 'tt-body-page') activeIdx = 0;
+                if (tabs[activeIdx]) tabs[activeIdx].classList.add('active');
+            })();
+
+            /* ═══ Follow Button State ═══ */
+            (function () {
+                var btn = document.getElementById('followBtn');
+                if (!btn || !window.TistoryBlog) return;
+                if (TistoryBlog.isSubscribed) {
+                    btn.innerHTML = btn.innerHTML.replace('Follow', 'Following');
+                    btn.classList.add('following');
+                }
+            })();
         })();
 
         /* ═══ Category Tree Toggle ═══ */

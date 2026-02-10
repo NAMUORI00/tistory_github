@@ -589,9 +589,7 @@ export async function hydrate(html, blogUrl) {
                 itemHtml = itemHtml.replace(/\[##_list_rep_summary_##\]/g, item.description[0].replace(/<[^>]*>?/gm, '').substring(0, 150) + '...');
                 itemHtml = itemHtml.replace(/\[##_list_rep_category_##\]/g, catName);
                 itemHtml = itemHtml.replace(/\[##_list_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(catName)}`);
-                // 카테고리 색상 조회 (부모 카테고리 이름으로 fallback)
-                const catColor = categoryColorMap.get(catName) || categoryColorMap.get(catName.split('/')[0]) || '#f1e05a';
-                itemHtml = itemHtml.replace(/\[##_list_rep_category_color_##\]/g, catColor);
+                // [list_rep_category_color_##]는 skin.html에서 제거됨 (Tistory 미지원 커스텀 태그)
                 itemHtml = itemHtml.replace(/\[##_list_rep_rp_cnt_##\]/g, '0');
                 itemHtml = itemHtml.replace(/\[##_list_rep_author_##\]/g, authorName);
 
@@ -621,9 +619,7 @@ export async function hydrate(html, blogUrl) {
             output = output.replace(/\[##_article_rep_desc_##\]/g, first.description[0]);
             output = output.replace(/\[##_article_rep_category_##\]/g, firstCat);
             output = output.replace(/\[##_article_rep_category_link_##\]/g, `${blogUrl}/category/${encodeURIComponent(firstCat)}`);
-            // 본문 카테고리 색상
-            const articleCatColor = categoryColorMap.get(firstCat) || categoryColorMap.get(firstCat.split('/')[0]) || '#f1e05a';
-            output = output.replace(/\[##_article_rep_category_color_##\]/g, articleCatColor);
+            // [article_rep_category_color_##]는 skin.html에서 제거됨 (Tistory 미지원 커스텀 태그)
             output = output.replace(/\[##_article_rep_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}. ${String(firstDate.getHours()).padStart(2, '0')}:${String(firstDate.getMinutes()).padStart(2, '0')}`);
             output = output.replace(/\[##_article_rep_simple_date_##\]/g, `${firstDate.getFullYear()}. ${firstDate.getMonth() + 1}. ${firstDate.getDate()}.`);
             output = output.replace(/\[##_article_rep_date_year_##\]/g, String(firstDate.getFullYear()));
@@ -851,6 +847,7 @@ export async function hydrate(html, blogUrl) {
             '\\[##_rp_input_password_##\\]': 'password',
             '\\[##_rp_input_homepage_##\\]': 'homepage',
             '\\[##_rp_textarea_body_##\\]': 'body',
+            '\\[##_rp_input_comment_##\\]': 'comment',
             '\\[##_rp_input_is_secret_##\\]': 'secret',
             '\\[##_rp_onclick_submit_##\\]': "alert('프리뷰 모드에서는 댓글을 등록할 수 없습니다.')",
             '\\[##_rp_cnt_##\\]': '0',
