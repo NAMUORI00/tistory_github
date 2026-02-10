@@ -325,8 +325,12 @@ async function scrapeBlogData(blogUrl) {
 /**
  * 전용 엔진: 스킨의 치환자를 실제 블로그 데이터로 변환합니다.
  * 데이터 소스: RSS + 블로그 HTML 직접 파싱 (병합)
+ * @param {string} html - skin.html 원본
+ * @param {string} blogUrl - 블로그 URL
+ * @param {string} pageType - 페이지 타입: 'index' | 'guestbook' | 'tag' | 'post'
+ *   Tistory는 페이지 타입에 따라 <s_guest>, <s_tag> 등의 블록을 선택적으로 렌더링합니다.
  */
-export async function hydrate(html, blogUrl) {
+export async function hydrate(html, blogUrl, pageType = 'index') {
     try {
         // blogUrl은 이미 전체 URL (extractBlogId가 반환한 형태)
         // RSS와 블로그 HTML을 동시에 가져옴
@@ -340,6 +344,35 @@ export async function hydrate(html, blogUrl) {
         const items = channel.item || [];
 
         let output = html;
+
+        // ═══════════════════════════════════════════════════════
+        // Tistory 페이지 타입별 조건부 블록 처리
+        // Tistory는 해당 페이지에서만 블록을 렌더링, 나머지는 제거
+        // ═══════════════════════════════════════════════════════
+        const bodyIdMap = {
+            'index': 'tt-body-index',
+            'post': 'tt-body-page',
+            'guestbook': 'tt-body-guestbook',
+            'tag': 'tt-body-tag',
+            'category': 'tt-body-category',
+            'search': 'tt-body-search',
+        };
+
+        if (pageType !== 'index' && pageType !== 'post' && pageType !== 'category') {
+            // guestbook/tag 페이지에서는 글 목록/본문/댓글 숨김
+            output = output.replace(/<s_list>[\s\S]*?<\/s_list>/g, '');
+            output = output.replace(/<s_article_rep>[\s\S]*?<\/s_article_rep>/g, '');
+            output = output.replace(/<s_rp>[\s\S]*?<\/s_rp>/g, '');
+            output = output.replace(/<s_article_protected>[\s\S]*?<\/s_article_protected>/g, '');
+        }
+        if (pageType !== 'guestbook') {
+            // 방명록 페이지가 아니면 방명록 블록 제거
+            output = output.replace(/<s_guest>[\s\S]*?<\/s_guest>/g, '');
+        }
+        if (pageType !== 'tag') {
+            // 태그 페이지가 아니면 태그 클라우드 블록 제거
+            output = output.replace(/<s_tag>[\s\S]*?<\/s_tag>/g, '');
+        }
 
         const api = scraped.blogApi; // /m/api/blog/info 데이터
         const rssBlogTitle = channel.title[0];
@@ -362,7 +395,7 @@ export async function hydrate(html, blogUrl) {
             '\\[##_desc_##\\]': blogDesc,
             '\\[##_blog_link_##\\]': blogUrl,
             '\\[##_blogger_##\\]': bloggerName,
-            '\\[##_body_id_##\\]': 'tt-body-index',
+            '\\[##_body_id_##\\]': bodyIdMap[pageType] || 'tt-body-index',
             '\\[##_page_title_##\\]': blogTitle,
             '\\[##_image_##\\]': blogImage,
             '\\[##_blog_image_##\\]': `<img src="${blogImage}" alt="${blogTitle}">`,
@@ -802,12 +835,13 @@ export async function hydrate(html, blogUrl) {
                 let h = template;
                 h = h.replace(/\[##_rp_rep_id_##\]/g, String(idx + 1));
                 h = h.replace(/\[##_rp_rep_name_##\]/g, c.name || '방문자');
-                h = h.replace(/\[##_rp_rep_comment_##\]/g, c.desc);
+                h = h.replace(/\[##_rp_rep_desc_##\]/g, c.desc);
                 h = h.replace(/\[##_rp_rep_date_##\]/g, c.date);
                 h = h.replace(/\[##_rp_rep_link_##\]/g, c.link);
                 h = h.replace(/\[##_rp_rep_logo_##\]/g, '');
                 h = h.replace(/\[##_rp_rep_class_##\]/g, '');
                 h = h.replace(/\[##_rp_rep_onclick_delete_##\]/g, "alert('프리뷰 모드')");
+                h = h.replace(/\[##_rp_rep_onclick_reply_##\]/g, "alert('프리뷰 모드')");
                 // 대댓글 영역 제거
                 h = h.replace(/<s_rp2_container>[\s\S]*?<\/s_rp2_container>/g, '');
                 return h;
@@ -827,11 +861,12 @@ export async function hydrate(html, blogUrl) {
                 let h = template;
                 h = h.replace(/\[##_guest_rep_id_##\]/g, String(idx + 1));
                 h = h.replace(/\[##_guest_rep_name_##\]/g, c.name || '방문자');
-                h = h.replace(/\[##_guest_rep_comment_##\]/g, c.desc);
+                h = h.replace(/\[##_guest_rep_desc_##\]/g, c.desc);
                 h = h.replace(/\[##_guest_rep_date_##\]/g, c.date);
                 h = h.replace(/\[##_guest_rep_logo_##\]/g, '');
                 h = h.replace(/\[##_guest_rep_class_##\]/g, '');
                 h = h.replace(/\[##_guest_rep_onclick_delete_##\]/g, "alert('프리뷰 모드')");
+                h = h.replace(/\[##_guest_rep_onclick_reply_##\]/g, "alert('프리뷰 모드')");
                 h = h.replace(/<s_guest_reply_container>[\s\S]*?<\/s_guest_reply_container>/g, '');
                 return h;
             }).join('');

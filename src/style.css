@@ -2077,3 +2077,11 @@ body,
 .header-search input {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
+
+/* ═══════════════════════════════════════════════════════
+   Page-Type Visibility (Tistory body_id 기반)
+   ═══════════════════════════════════════════════════════ */
+#tt-body-guestbook .readme-card,
+#tt-body-tag .readme-card {
+  display: none;
+}

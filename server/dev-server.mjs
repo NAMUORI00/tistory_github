@@ -30,7 +30,7 @@ app.get('/', async (req, res) => {
     try {
         const skinHtml = await fs.readFile(path.join(SRC, 'skin.html'), 'utf-8');
         let processedHtml = mockEnabled
-            ? await hydrate(skinHtml, blogUrl)
+            ? await hydrate(skinHtml, blogUrl, req.query.page || 'index')
             : skinHtml;
 
         // 로컬 프리뷰: 블로그 URL → localhost URL로 변환 (탭 네비게이션이 로컬에서 동작하도록)
