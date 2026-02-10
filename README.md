@@ -35,6 +35,19 @@ npm run dev
 # → http://localhost:3000 에서 스킨 미리보기
 ```
 
+## 🔀 페이지 타입 라우팅
+
+로컬 프리뷰에서 탭 네비게이션(Overview, Posts, Guestbook, Tags)을 클릭하면 해당 페이지 타입으로 렌더링됩니다.
+
+| 페이지 | URL | body_id | 렌더링 블록 |
+|:---|:---|:---|:---|
+| Overview | `/?page=index` (기본) | `tt-body-index` | `s_article_rep`, `s_list`, `s_rp` |
+| Posts | `/?page=category` | `tt-body-category` | `s_list` |
+| Guestbook | `/?page=guestbook` | `tt-body-guestbook` | `s_guest` |
+| Tags | `/?page=tag` | `tt-body-tag` | `s_tag` |
+
+> Tistory 실제 서버와 동일하게, 해당 페이지 타입에 속하지 않는 그룹 블록은 자동으로 제거됩니다.
+
 ## 🏗 데이터 소스 아키텍처
 
 엔진은 **3가지 데이터 소스**를 병렬로 가져와 병합합니다:
@@ -140,7 +153,7 @@ npm run dev
 | `[##_s_ad_t_onclick_##]` | 트랙백 온클릭 이벤트 |
 | `[##_s_ad_d_onclick_##]` | 삭제 온클릭 이벤트 |
 
-### 값 치환자 — 댓글 (12개)
+### 값 치환자 — 댓글 (13개)
 
 | 치환자 | 설명 |
 |:---|:---|
@@ -149,15 +162,16 @@ npm run dev
 | `[##_rp_rep_name_##]` | 작성자 이름 |
 | `[##_rp_rep_logo_##]` | 작성자 프로필 이미지 |
 | `[##_rp_rep_date_##]` | 작성 날짜 |
-| `[##_rp_rep_comment_##]` | 댓글 내용 |
+| `[##_rp_rep_desc_##]` | 댓글 내용 |
 | `[##_rp_rep_link_##]` | 댓글 주소 |
 | `[##_rp_rep_onclick_delete_##]` | 삭제 온클릭 이벤트 |
+| `[##_rp_rep_onclick_reply_##]` | 답글 작성 온클릭 이벤트 |
 | `[##_rp_input_comment_##]` | 댓글 입력 박스 이름 |
 | `[##_rp_input_name_##]` / `password` / `homepage` | 입력 필드 이름 |
 | `[##_rp_onclick_submit_##]` | 댓글 입력 온클릭 이벤트 |
 | `[##_rp_input_is_secret_##]` | 비밀글 체크박스 이름 |
 
-### 값 치환자 — 방명록 (14개)
+### 값 치환자 — 방명록 (15개)
 
 | 치환자 | 설명 |
 |:---|:---|
@@ -166,8 +180,9 @@ npm run dev
 | `[##_guest_rep_name_##]` | 작성자 이름 |
 | `[##_guest_rep_logo_##]` | 작성자 프로필 |
 | `[##_guest_rep_date_##]` | 작성 날짜 |
-| `[##_guest_rep_comment_##]` | 방명록 내용 |
+| `[##_guest_rep_desc_##]` | 방명록 내용 |
 | `[##_guest_rep_onclick_delete_##]` | 삭제 온클릭 이벤트 |
+| `[##_guest_rep_onclick_reply_##]` | 답글 작성 온클릭 이벤트 |
 | `[##_guest_textarea_body_##]` | 내용 입력박스 이름 |
 | `[##_guest_onclick_submit_##]` | 입력 완료 온클릭 이벤트 |
 | `[##_guest_input_name_##]` / `password` / `homepage` | 입력 필드 이름 |
@@ -266,6 +281,21 @@ npm run dev
 | `<s_not_var_{NAME}>` | 옵션이 false일 때 표시 |
 
 > 옵션은 `index.xml`의 `<variables>` 섹션에 정의합니다.
+
+## ⚠️ 세션 의존 치환자 (프리뷰 미지원)
+
+아래 기능은 **티스토리 로그인 세션**이 필요하므로 로컬 프리뷰에서는 동작하지 않습니다.  
+실제 블로그에 스킨 업로드 후에만 정상 동작합니다.
+
+| 기능 | 관련 API/태그 | 프리뷰 동작 |
+|:---|:---|:---|
+| 구독(Follow) | `TistoryBlog.toggleSubscribe()` | fallback: 블로그 URL 이동 |
+| 구독 상태 확인 | `TistoryBlog.isSubscribed` | 항상 미구독 상태 |
+| 댓글 작성/삭제 | `[##_rp_onclick_submit_##]`, `onclick_delete` | `alert('프리뷰 모드')` |
+| 방명록 작성/삭제 | `[##_guest_onclick_submit_##]`, `onclick_delete` | `alert('프리뷰 모드')` |
+| 글 관리 (수정/삭제/상태변경) | `<s_ad_div>` 내 치환자 전체 | 블록 제거됨 |
+| 보호글 잠금해제 | `[##_article_protected_onclick_submit_##]` | `alert('프리뷰 모드')` |
+| 검색 실행 | `[##_search_onclick_submit_##]` | 원본 블로그로 리다이렉트 |
 
 ## 🤖 AI 에이전트와 협업하기
 
