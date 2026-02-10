@@ -1122,7 +1122,7 @@ s_notice+s_rctps {
 
 /* Post count badge */
 .category-list .c_cnt {
-  margin-left: auto;
+  margin-left: 4px;
   font-size: 11px;
   color: var(--color-fg-subtle);
   background: var(--color-neutral-muted);
