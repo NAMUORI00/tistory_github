@@ -2105,3 +2105,14 @@ body,
 #tt-body-page .post-list-section {
   display: none;
 }
+
+/* 댓글/보호글: 글 상세(post)에서만 표시 — 다른 페이지에서는 숨김 */
+.comments-section,
+.protected-page {
+  display: none;
+}
+
+#tt-body-page .comments-section,
+#tt-body-page .protected-page {
+  display: block;
+}
