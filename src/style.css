@@ -2262,3 +2262,57 @@ body,
 [data-tistory-react-app="Namecard"] {
   display: none !important;
 }
+
+/* 같은 카테고리의 다른 글 — Tistory 기본 스타일 복원 */
+.another_category {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-top: 32px;
+  background: var(--color-canvas-subtle);
+}
+
+.another_category h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  margin-bottom: 12px;
+}
+
+.another_category h4 a {
+  color: var(--color-accent-fg);
+}
+
+.another_category table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.another_category th,
+.another_category td {
+  text-align: left;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 400;
+  border: none;
+}
+
+.another_category th a {
+  color: var(--color-fg-default);
+}
+
+.another_category th a:hover {
+  color: var(--color-accent-fg);
+}
+
+.another_category td {
+  color: var(--color-fg-muted);
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 12px;
+}
+
+.another_category th span {
+  color: var(--color-fg-muted);
+  font-size: 12px;
+}
