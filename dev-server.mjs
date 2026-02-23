@@ -10,7 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 dotenv.config({ path: path.join(ROOT, '.env') });
 
-const SRC = path.join(ROOT, 'src');
+const SKIN_DIR = process.env.SKIN_DIR || 'skin';
+const SRC = path.join(ROOT, SKIN_DIR);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -113,7 +114,7 @@ app.get('/', async (req, res) => {
                     <button class="tb-btn tb-btn-toggle ${mockEnabled ? 'active' : ''}" onclick="toggleMock()" title="Toggle mock data hydration">
                         ${mockEnabled ? '📦 Mock ON' : '📄 Mock OFF'}
                     </button>
-                    <small>src/skin.html → ${blogUrl}</small>
+                    <small>${SKIN_DIR}/skin.html → ${blogUrl}</small>
                 </div>
             </div>
             <button id="dev-toolbar-tab" onclick="toggleToolbar()">▼ DevTools</button>
@@ -162,7 +163,7 @@ app.get('/', async (req, res) => {
 
         res.send(processedHtml + controlToolbar);
     } catch (err) {
-        res.status(500).send('Skin file not found in /src directory.');
+        res.status(500).send(`Skin file not found in /${SKIN_DIR} directory.`);
     }
 });
 
@@ -172,7 +173,7 @@ app.listen(PORT, () => {
 ║  TISTORY SKIN MOCK SERVER (ROOT REFACTORED)                     ║
 ╟─────────────────────────────────────────────────────────────────╢
 ║  - Skin Site: http://localhost:${PORT}                           ║
-║  - Watching:  /src/skin.html                                    ║
+║  - Watching:  /${SKIN_DIR}/skin.html                             ║
 ╟─────────────────────────────────────────────────────────────────╢
 ║  [Environment Settings]                                         ║
 ║  - Default Target: ${DEFAULT_TARGET} (.env)                      ║
