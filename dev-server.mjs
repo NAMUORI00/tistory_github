@@ -12,15 +12,36 @@ dotenv.config({ path: path.join(ROOT, '.env') });
 
 const SKIN_DIR = process.env.SKIN_DIR || 'skin';
 const SRC = path.join(ROOT, SKIN_DIR);
+const SKIN_HTML_PATH = path.join(SRC, 'skin.html');
+const SKIN_CSS_PATH = path.join(SRC, 'style.css');
+const SKIN_IMAGES_PATH = path.join(SRC, 'images');
+
+async function validateSkinFiles() {
+    try {
+        await fs.access(SKIN_HTML_PATH);
+        await fs.access(SKIN_CSS_PATH);
+        await fs.access(SKIN_IMAGES_PATH);
+    } catch (err) {
+        console.error(`\n[FATAL] Required skin files not found in ${SRC}`);
+        console.error(`- Expected skin file path: ${SKIN_HTML_PATH}`);
+        console.error(`- Expected css path: ${SKIN_CSS_PATH}`);
+        console.error(`- Expected images path: ${SKIN_IMAGES_PATH}`);
+        console.error('\n확인 사항:');
+        console.error('1) .env의 SKIN_DIR 값이 올바른지');
+        console.error('2) 루트 워크트리에서 서브모듈이 초기화되었는지 (git submodule update --init --recursive)');
+        console.error('3) npm run setup 실행 여부');
+        throw err;
+    }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DEFAULT_TARGET = process.env.TARGET_BLOG_URL || 'notice';
 
-// src 폴더의 에셋들 서빙
-app.use('/style.css', express.static(path.join(SRC, 'style.css')));
+// skin 폴더의 에셋들 서빙
+app.use('/style.css', express.static(SKIN_CSS_PATH));
 app.use('/script.js', express.static(path.join(SRC, 'script.js')));
-app.use('/images', express.static(path.join(SRC, 'images')));
+app.use('/images', express.static(SKIN_IMAGES_PATH));
 
 app.get('/', async (req, res) => {
     // 쿼리 파라미터 'target'이 있으면 우선 사용, 없으면 .env의 DEFAULT_TARGET 사용
@@ -29,7 +50,7 @@ app.get('/', async (req, res) => {
     const mockEnabled = req.query.mock !== 'off';
 
     try {
-        const skinHtml = await fs.readFile(path.join(SRC, 'skin.html'), 'utf-8');
+        const skinHtml = await fs.readFile(SKIN_HTML_PATH, 'utf-8');
         let processedHtml = mockEnabled
             ? await hydrate(skinHtml, blogUrl, req.query.page || 'index', req.query.entry || null)
             : skinHtml;
@@ -163,12 +184,14 @@ app.get('/', async (req, res) => {
 
         res.send(processedHtml + controlToolbar);
     } catch (err) {
-        res.status(500).send(`Skin file not found in /${SKIN_DIR} directory.`);
+        console.error('Failed to render skin:', err.message);
+        res.status(500).send(`Skin rendering failed in /${SKIN_DIR}: ${err.message}`);
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`
+validateSkinFiles().then(() => {
+    app.listen(PORT, () => {
+        console.log(`
 ╔═════════════════════════════════════════════════════════════════╗
 ║  TISTORY SKIN MOCK SERVER (ROOT REFACTORED)                     ║
 ╟─────────────────────────────────────────────────────────────────╢
@@ -182,5 +205,9 @@ app.listen(PORT, () => {
 ║  [Test with Custom Blog]                                        ║
 ║  URL: http://localhost:${PORT}?target=https://keinn51.tistory.com/ ║
 ╚═════════════════════════════════════════════════════════════════╝
-    `);
+        `);
+    });
+}).catch((err) => {
+    console.error(`\n[FATAL] Dev server startup failed: ${err.message}`);
+    process.exit(1);
 });
