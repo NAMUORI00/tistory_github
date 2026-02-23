@@ -1,11 +1,16 @@
 {
-  "name": "tistory-skin-dev-env",
+  "name": "tistory-workspace",
   "version": "1.0.0",
-  "description": "Tistory Skin Local Development Environment",
-  "main": "dev-server.mjs",
+  "private": true,
+  "description": "Tistory Skin Development Workspace (Monorepo)",
   "type": "module",
   "scripts": {
-    "dev": "node server/dev-server.mjs"
+    "dev": "node server/dev-server.mjs",
+    "install:server": "cd server && npm install",
+    "setup": "git submodule update --init --recursive && cd server && npm install",
+    "update:skin": "git submodule update --remote skin",
+    "update:server": "git submodule update --remote server",
+    "update:all": "git submodule update --remote --merge"
   },
   "dependencies": {
     "axios": "^1.6.0",

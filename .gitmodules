@@ -1,0 +1,8 @@
+[submodule "skin"]
+	path = skin
+	url = https://github.com/NAMUORI00/tistory_github.git
+	branch = skin
+[submodule "server"]
+	path = server
+	url = https://github.com/NAMUORI00/tistory_github.git
+	branch = dev-server
