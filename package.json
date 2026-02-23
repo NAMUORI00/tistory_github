@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node server/dev-server.mjs",
     "install:server": "cd server && npm install",
-    "setup": "git submodule update --init --recursive && cd server && npm install",
+    "setup": "git submodule update --init --recursive && npm install && npm run install:server",
     "update:skin": "git submodule update --remote skin",
     "update:server": "git submodule update --remote server",
     "update:all": "git submodule update --remote --merge"
