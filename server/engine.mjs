@@ -67,6 +67,7 @@ function collectCategories(items) {
  * - T.config (블로그 설정 정보)
  */
 async function scrapeBlogData(blogUrl) {
+    blogUrl = blogUrl.replace(/\/+$/, '');
     const data = {
         visitor: { today: '0', yesterday: '0', total: '0' },
         tags: [],       // { name, link, cloudClass }
@@ -431,7 +432,8 @@ async function scrapeBlogData(blogUrl) {
  */
 export async function hydrate(html, blogUrl, pageType = 'index', entryId = null) {
     try {
-        // blogUrl은 이미 전체 URL (extractBlogId가 반환한 형태)
+        // blogUrl 끝의 trailing slash 제거 (이중 슬래시 방지)
+        blogUrl = blogUrl.replace(/\/+$/, '');
         // RSS와 블로그 HTML을 동시에 가져옴
         const [rssResponse, scraped] = await Promise.all([
             axios.get(`${blogUrl}/rss`),
