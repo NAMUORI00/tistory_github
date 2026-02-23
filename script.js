@@ -107,79 +107,126 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ═══════════════════════════════════════════════════════
-    // 카테고리 색상 도트 자동 적용
-    // 로컬 프리뷰와 실제 Tistory 양쪽에서 동작
+    // 카테고리 색상 시스템
+    // 카테고리 이름을 해시하여 고정 색상을 부여
+    // 이름이 바뀌지 않는 한 항상 동일한 색상이 적용됨
     // ═══════════════════════════════════════════════════════
+
+    // 가독성 좋은 GitHub 언어 색상 팔레트 (16색)
     const catColors = [
         '#3572A5', '#e34c26', '#f1e05a', '#563d7c', '#2b7489',
         '#b07219', '#4F5D95', '#00ADD8', '#DA5B0B', '#178600',
         '#89e051', '#438eff', '#A97BFF', '#e44b23', '#f34b7d', '#00B4AB'
     ];
 
+    // 문자열 → 고정 색상 인덱스 (해시 기반, 이름이 같으면 항상 같은 색)
+    function hashColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash = hash & hash; // 32bit 정수로 변환
+        }
+        return catColors[Math.abs(hash) % catColors.length];
+    }
+
+    // 카테고리 이름에서 글 수 등 숫자 제거: "이론공부 (64)" → "이론공부"
+    function cleanCatName(text) {
+        return text.replace(/\(\d+\)/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    const catColorMap = {};
     const categoryList = document.querySelector('.category-list');
+
     if (categoryList) {
-        // 최상위 카테고리 li 요소들 찾기
-        const topItems = categoryList.querySelectorAll(':scope > ul > li');
-        let colorIdx = 0;
-        topItems.forEach((li) => {
+        // Tistory 실제 구조: .tt_category > li(전체글) > .category_list > li(실제 카테고리)
+        // 부모 카테고리 찾기 (전체글 제외)
+        const parentItems = categoryList.querySelectorAll('.category_list > li, ul.tt_category > li > ul > li');
+
+        parentItems.forEach((li) => {
             const link = li.querySelector(':scope > a');
             if (!link) return;
 
-            // 이미 cat-dot이 있으면 스킵 (로컬 엔진이 이미 추가한 경우)
-            if (link.querySelector('.cat-dot')) return;
+            const name = cleanCatName(link.textContent);
+            if (!name || name === '전체글') return;
 
-            const color = catColors[colorIdx % catColors.length];
-            colorIdx++;
+            const color = hashColor(name);
+            catColorMap[name] = color;
 
-            // 색상 도트 추가
+            // 기존 dot 제거 후 새로 추가
+            const oldDot = link.querySelector('.cat-dot');
+            if (oldDot) oldDot.remove();
+
             const dot = document.createElement('span');
             dot.className = 'cat-dot';
             dot.style.background = color;
             link.insertBefore(dot, link.firstChild);
 
-            // 하위 카테고리에 같은 색상의 도트 비표시 (서브는 들여쓰기만)
             li.classList.add('cat-parent');
 
-            // 글 수 배지 스타일 적용
+            // 글 수 정렬
             const countEl = link.querySelector('.c_cnt');
-            if (countEl) {
-                countEl.style.marginLeft = 'auto';
-            }
-        });
-    }
+            if (countEl) countEl.style.marginLeft = 'auto';
 
-    // ═══════════════════════════════════════════════════════
-    // 포스트 목록 카테고리 태그에 색상 적용
-    // .meta-cat, .repo-tag 등의 카테고리 라벨에 색상 적용
-    // ═══════════════════════════════════════════════════════
-    const catColorMap = {};
-    if (categoryList) {
-        let idx = 0;
-        const topItems = categoryList.querySelectorAll(':scope > ul > li');
-        topItems.forEach((li) => {
-            const link = li.querySelector(':scope > a');
-            if (!link) return;
-            const name = link.textContent.replace(/\d+/g, '').trim();
-            catColorMap[name] = catColors[idx % catColors.length];
-            idx++;
-
-            // 서브카테고리도 매핑
-            const subLinks = li.querySelectorAll('ul a');
+            // 서브카테고리: 부모 색상 상속
+            const subLinks = li.querySelectorAll('.sub_category_list a, ul a');
             subLinks.forEach((sub) => {
-                const subName = sub.textContent.replace(/\d+/g, '').trim();
-                catColorMap[subName] = catColorMap[name];
-                // "부모/자식" 형태도 매핑
-                catColorMap[name + '/' + subName] = catColorMap[name];
+                const subName = cleanCatName(sub.textContent);
+                catColorMap[subName] = color;
+                catColorMap[name + '/' + subName] = color;
             });
         });
+
+        // "전체글" 항목에도 dot 처리 (회색)
+        const allLink = categoryList.querySelector('.tt_category > li > a.link_tit');
+        if (allLink) {
+            const oldDot = allLink.querySelector('.cat-dot');
+            if (oldDot) oldDot.remove();
+
+            const dot = document.createElement('span');
+            dot.className = 'cat-dot';
+            dot.style.background = 'var(--color-fg-muted, #8b949e)';
+            allLink.insertBefore(dot, allLink.firstChild);
+        }
     }
 
-    // 포스트 카드의 카테고리 라벨에 색상 dot 추가
+    // ═══════════════════════════════════════════════════════
+    // 포스트 카드 카테고리 라벨에 색상 dot 적용
+    // "카테고리 없음" 처리 포함
+    // ═══════════════════════════════════════════════════════
+
+    // 포스트 카드 (.repo-card, .article-card)의 카테고리 라벨
+    document.querySelectorAll('.meta-cat, .repo-tag, .pinned-repo-tag').forEach((el) => {
+        const text = cleanCatName(el.textContent);
+
+        // 빈 카테고리는 숨김
+        if (!text || text === '카테고리 없음') {
+            el.style.display = 'none';
+            return;
+        }
+
+        // "부모/자식" 형태에서 부모 이름으로도 색상 찾기
+        const parts = text.split('/');
+        const color = catColorMap[text] || catColorMap[parts[0]] || hashColor(parts[0]);
+
+        // dot이 없으면 추가
+        let dot = el.querySelector('.cat-dot, .lang-dot');
+        if (!dot) {
+            dot = document.createElement('span');
+            dot.className = 'cat-dot';
+            dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;flex-shrink:0;';
+            el.insertBefore(dot, el.firstChild);
+        }
+        dot.style.background = color;
+    });
+
+    // 팝포 하단 meta 항목에도 적용
     document.querySelectorAll('.pinned-repo-meta-item, .repo-meta-item').forEach((item) => {
         const dot = item.querySelector('.lang-dot, .cat-dot');
-        const text = item.textContent.trim();
-        if (dot && catColorMap[text]) {
-            dot.style.background = catColorMap[text];
+        const text = cleanCatName(item.textContent);
+        if (dot && text) {
+            const parts = text.split('/');
+            const color = catColorMap[text] || catColorMap[parts[0]] || hashColor(parts[0]);
+            dot.style.background = color;
         }
     });
 });
