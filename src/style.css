@@ -2149,26 +2149,26 @@ body,
 /* ═══════════════════════════════════════════════════════
    Page-Type Visibility (Tistory body_id 기반)
    GitHub 스타일:
-   - Overview (index): README + Pinned + Posts 전부 표시
-   - Posts (category): 포스트 리스트만 (README/Pinned 숨김)
-   - Post (page): README(글 상세) + 댓글만 (Pinned/목록 숨김)
+   - Overview (index): Article cards + Pinned + Posts 전부 표시
+   - Posts (category): 포스트 리스트만 (article-card 숨김)
+   - Post (page): Article card(글 상세) + 댓글만 (Pinned/목록 숨김)
    - Guestbook: 방명록만
    - Tag: 태그 클라우드만
    ═══════════════════════════════════════════════════════ */
 
-/* Guestbook/Tag: README 숨김 */
-#tt-body-guestbook .readme-card,
-#tt-body-tag .readme-card {
+/* Guestbook/Tag: article-card 숨김 */
+#tt-body-guestbook .article-card,
+#tt-body-tag .article-card {
   display: none;
 }
 
-/* Posts(category): README와 Pinned 숨김 → 리스트만 표시 */
-#tt-body-category .readme-card,
+/* Posts(category): article-card와 Pinned 숨김 → 리스트만 표시 */
+#tt-body-category .article-card,
 #tt-body-category .pinned-section {
   display: none;
 }
 
-/* Post detail(page): Pinned와 리스트 숨김 → README(글 상세)만 표시 */
+/* Post detail(page): Pinned와 리스트 숨김 → article-card(글 상세)만 표시 */
 #tt-body-page .pinned-section,
 #tt-body-page .post-list-section {
   display: none;
@@ -2186,7 +2186,40 @@ body,
 }
 
 /* ═══════════════════════════════════════════════════════
-   Index 페이지: README 카드 본문 높이 제한
+   Article Card (글별 개별 카드)
+   s_article_rep 반복 시 각 글이 독립 카드로 표시됨
+   ═══════════════════════════════════════════════════════ */
+
+.article-card {
+  margin-bottom: 16px;
+}
+
+.article-card .readme-header a {
+  color: var(--color-fg-default);
+  font-weight: 600;
+}
+
+.article-card .readme-header a:hover {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+}
+
+.readme-header-meta {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+
+.article-tags {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Index 페이지: Article card 본문 높이 제한
    Tistory s_article_rep는 인덱스에서 모든 글을 반복 렌더링하므로,
    본문을 일정 높이로 제한하여 깔끔한 요약 형태로 표시합니다.
    글 상세(permalink) 페이지에서는 전체 본문이 표시됩니다.
