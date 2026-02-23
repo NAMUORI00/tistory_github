@@ -1183,7 +1183,14 @@ s_notice+s_rctps {
 /* --- Contribution Graph (GitHub 잔디밭) --- */
 .contrib-graph {
   margin-top: 8px;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+}
+
+/* 잔디밭 부모 카드의 overflow를 풀어서 툴팁이 잘리지 않도록 */
+.contrib-graph:hover {
+  z-index: 20;
 }
 
 .contrib-months {
