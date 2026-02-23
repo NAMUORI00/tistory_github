@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <skin>
   <information>
-    <name>AI Agent Starter Skin</name>
-    <version>1.0.0</version>
-    <description>AI 에이전트와 함께 만드는 티스토리 블로그 스킨 시작 템플릿입니다.</description>
+    <name>GitHub Style Skin</name>
+    <version>1.1.0</version>
+    <description>GitHub 스타일의 티스토리 블로그 스킨입니다. 스킨 편집에서 탭 메뉴, 사이드바, 레이아웃 등을 자유롭게 설정할 수 있습니다.</description>
     <license>MIT License</license>
   </information>
   <author>
@@ -18,37 +18,195 @@
     <recentTrackbacks>0</recentTrackbacks>
     <itemsOnGuestbook>10</itemsOnGuestbook>
     <tagsInCloud>30</tagsInCloud>
-    <expandComment>0</expandComment>
+    <sortInCloud>1</sortInCloud>
+    <expandComment>1</expandComment>
     <expandTrackback>0</expandTrackback>
     <lengthOfRecentNotice>25</lengthOfRecentNotice>
     <lengthOfRecentEntry>25</lengthOfRecentEntry>
     <lengthOfRecentComment>25</lengthOfRecentComment>
     <lengthOfRecentTrackback>25</lengthOfRecentTrackback>
     <lengthOfLink>25</lengthOfLink>
+    <contentWidth>860</contentWidth>
+    <showListOnCategory>2</showListOnCategory>
   </default>
 
   <variables>
-    <variable>
-      <name>mainColor</name>
-      <label>메인 테마 색상</label>
-      <type>color</type>
-      <default>#3b82f6</default>
-    </variable>
-    <variable>
-      <name>headerImage</name>
-      <label>헤더 배경 이미지</label>
-      <type>image</type>
-      <default></default>
-    </variable>
-    <variable>
-      <name>showSidebar</name>
-      <label>사이드바 표시 여부</label>
-      <type>select</type>
-      <option value="true">표시</option>
-      <option value="false">숨김</option>
-      <default>true</default>
-    </variable>
+    <!-- ═══ 디자인 ═══ -->
+    <variablegroup name="디자인">
+      <variable>
+        <name>mainColor</name>
+        <label><![CDATA[ 메인 테마 색상 ]]></label>
+        <description><![CDATA[ 블로그의 주요 강조 색상을 설정합니다. ]]></description>
+        <type>COLOR</type>
+        <option />
+        <default>#3b82f6</default>
+      </variable>
+      <variable>
+        <name>headerImage</name>
+        <label><![CDATA[ 헤더 배경 이미지 ]]></label>
+        <description><![CDATA[ 상단 헤더 영역의 배경 이미지를 설정합니다. ]]></description>
+        <type>IMAGE</type>
+        <option />
+        <default></default>
+      </variable>
+    </variablegroup>
+
+    <!-- ═══ 상단 탭 메뉴 ═══ -->
+    <variablegroup name="상단 탭 메뉴">
+      <variable>
+        <name>showTabOverview</name>
+        <label><![CDATA[ Overview 탭 표시 ]]></label>
+        <description><![CDATA[ 상단 메뉴에 Overview 탭을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showTabPosts</name>
+        <label><![CDATA[ Posts 탭 표시 ]]></label>
+        <description><![CDATA[ 상단 메뉴에 Posts(글 목록) 탭을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showTabGuestbook</name>
+        <label><![CDATA[ Guestbook 탭 표시 ]]></label>
+        <description><![CDATA[ 상단 메뉴에 Guestbook(방명록) 탭을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showTabTags</name>
+        <label><![CDATA[ Tags 탭 표시 ]]></label>
+        <description><![CDATA[ 상단 메뉴에 Tags 탭을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>labelOverview</name>
+        <label><![CDATA[ Overview 탭 이름 ]]></label>
+        <description><![CDATA[ Overview 탭에 표시될 텍스트를 변경합니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default>Overview</default>
+      </variable>
+      <variable>
+        <name>labelPosts</name>
+        <label><![CDATA[ Posts 탭 이름 ]]></label>
+        <description><![CDATA[ Posts 탭에 표시될 텍스트를 변경합니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default>Posts</default>
+      </variable>
+      <variable>
+        <name>labelGuestbook</name>
+        <label><![CDATA[ Guestbook 탭 이름 ]]></label>
+        <description><![CDATA[ Guestbook 탭에 표시될 텍스트를 변경합니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default>Guestbook</default>
+      </variable>
+      <variable>
+        <name>labelTags</name>
+        <label><![CDATA[ Tags 탭 이름 ]]></label>
+        <description><![CDATA[ Tags 탭에 표시될 텍스트를 변경합니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default>Tags</default>
+      </variable>
+    </variablegroup>
+
+    <!-- ═══ 사이드바 설정 ═══ -->
+    <variablegroup name="사이드바">
+      <variable>
+        <name>showSidebar</name>
+        <label><![CDATA[ 사이드바 표시 ]]></label>
+        <description><![CDATA[ 좌측 사이드바 전체를 표시하거나 숨깁니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showNotice</name>
+        <label><![CDATA[ Notice(공지) 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 공지사항 영역을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showCategories</name>
+        <label><![CDATA[ Categories 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 카테고리 목록을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showRecentPosts</name>
+        <label><![CDATA[ 최근 글/댓글 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 최근 글 및 최근 댓글 탭을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showArchive</name>
+        <label><![CDATA[ Archive 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 Archive(월별 글 모음)를 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showCalendar</name>
+        <label><![CDATA[ Calendar 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 달력을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>showInsights</name>
+        <label><![CDATA[ Insights(방문자 통계) 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 방문자 통계를 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+    </variablegroup>
+
+    <!-- ═══ 레이아웃 ═══ -->
+    <variablegroup name="레이아웃">
+      <variable>
+        <name>pinnedPostCount</name>
+        <label><![CDATA[ Pinned Posts 개수 ]]></label>
+        <description><![CDATA[ 상단에 고정(Pinned) 표시할 게시글 수를 설정합니다. ]]></description>
+        <type>SELECT</type>
+        <option><![CDATA[
+          [
+            {"name":"0", "label":"표시 안함", "value":"0"},
+            {"name":"2", "label":"2개", "value":"2"},
+            {"name":"4", "label":"4개", "value":"4"},
+            {"name":"6", "label":"6개", "value":"6"}
+          ]
+        ]]></option>
+        <default>6</default>
+      </variable>
+      <variable>
+        <name>showThumbnail</name>
+        <label><![CDATA[ 글 목록 썸네일 표시 ]]></label>
+        <description><![CDATA[ 글 목록에서 썸네일 이미지를 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+    </variablegroup>
   </variables>
+
   <cover>
     <!-- 홈 커버 기능을 사용하려면 여기에 아이템을 정의하세요 -->
   </cover>

@@ -1155,6 +1155,44 @@ export async function hydrate(html, blogUrl, pageType = 'index', entryId = null)
         output = output.replace(/\[##_article_protected_onclick_submit_##\]/g, "alert('프리뷰 모드')");
 
         // ═══════════════════════════════════════════════════════
+        // 스킨 변수 치환 — index.xml의 기본값으로 [##_var_{name}_##] 처리
+        // 티스토리 스킨편집에서 설정한 값은 서버에서 치환되지만,
+        // 로컬 프리뷰에서는 index.xml의 default 값을 사용합니다.
+        // ═══════════════════════════════════════════════════════
+        try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const indexXmlPath = path.default.join(
+                path.default.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')),
+                '..', 'src', 'index.xml'
+            );
+            const indexXml = fs.default.readFileSync(indexXmlPath, 'utf-8');
+            const indexData = await parseStringPromise(indexXml);
+            const variables = indexData?.skin?.variables?.[0];
+            if (variables) {
+                // variablegroup 내의 variable과 직접 variable 모두 처리
+                const allVars = [];
+                if (variables.variable) allVars.push(...variables.variable);
+                if (variables.variablegroup) {
+                    for (const group of variables.variablegroup) {
+                        if (group.variable) allVars.push(...group.variable);
+                    }
+                }
+                for (const v of allVars) {
+                    const name = v.name?.[0];
+                    let defaultVal = v.default?.[0] || '';
+                    if (typeof defaultVal === 'object') defaultVal = '';
+                    if (name) {
+                        const varPattern = new RegExp(`\\[##_var_${name}_##\\]`, 'g');
+                        output = output.replace(varPattern, defaultVal);
+                    }
+                }
+            }
+        } catch (xmlErr) {
+            console.warn('index.xml variable parsing warning:', xmlErr.message);
+        }
+
+        // ═══════════════════════════════════════════════════════
         // 최종 정리 — 미처리 치환자 제거
         // ═══════════════════════════════════════════════════════
         output = output.replace(/\[##_.*?_##\]/g, '');

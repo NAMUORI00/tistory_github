@@ -10,6 +10,11 @@
         :root {
             --mainColor: [##_var_mainColor_##];
         }
+
+        /* 스킨 설정: data-visible="false" 즉시 숨김 (FOUC 방지) */
+        [data-visible="false"] {
+            display: none !important;
+        }
     </style>
     [##_tistory_head_##]
 </head>
@@ -113,7 +118,7 @@
             <div class="container profile-layout">
 
                 <!-- ===== Left: Profile Sidebar ===== -->
-                <aside class="profile-card">
+                <aside class="profile-card" data-visible="[##_var_showSidebar_##]">
                     <img class="profile-avatar" src="[##_image_##]" alt="[##_blogger_##]"
                         onerror="this.src='https://avatars.githubusercontent.com/u/0?v=4'">
                     <div class="profile-name">[##_blogger_##]</div>
@@ -155,7 +160,7 @@
 
                     <!-- ═══ 1-a. Notice ═══ -->
                     <s_notice>
-                        <div class="sidebar-module sidebar-card">
+                        <div class="sidebar-module sidebar-card" data-visible="[##_var_showNotice_##]">
                             <h3>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                     <path
@@ -188,7 +193,7 @@
 
                         <!-- 1. Categories -->
                         <s_sidebar_element>
-                            <div class="sidebar-module sidebar-card">
+                            <div class="sidebar-module sidebar-card" data-visible="[##_var_showCategories_##]">
                                 <h3>
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                         <path
@@ -205,7 +210,8 @@
 
                         <!-- 2. Recent Posts / Comments (탭) -->
                         <s_sidebar_element>
-                            <div class="sidebar-module sidebar-card sidebar-tabs-card">
+                            <div class="sidebar-module sidebar-card sidebar-tabs-card"
+                                data-visible="[##_var_showRecentPosts_##]">
                                 <div class="sidebar-tabs">
                                     <input type="radio" name="recentTab" id="tabPosts" checked
                                         class="sidebar-tab-input">
@@ -265,7 +271,7 @@
 
                         <!-- 3. Archive -->
                         <s_sidebar_element>
-                            <div class="sidebar-module sidebar-card">
+                            <div class="sidebar-module sidebar-card" data-visible="[##_var_showArchive_##]">
                                 <h3>
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                         <path
@@ -282,7 +288,7 @@
 
                         <!-- 4. Calendar -->
                         <s_sidebar_element>
-                            <div class="sidebar-module sidebar-card">
+                            <div class="sidebar-module sidebar-card" data-visible="[##_var_showCalendar_##]">
                                 <h3>
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                         <path
@@ -300,7 +306,7 @@
                     </s_sidebar>
 
                     <!-- ═══ 5. Insights ═══ -->
-                    <div class="sidebar-module sidebar-card visitor-stats">
+                    <div class="sidebar-module sidebar-card visitor-stats" data-visible="[##_var_showInsights_##]">
                         <h3>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <path
@@ -332,38 +338,40 @@
                 <div class="main-content">
 
                     <!-- Profile Under-Nav Tabs -->
-                    <nav class="under-nav">
-                        <a class="under-nav-item active" href="[##_blog_link_##]" title="Overview">
+                    <nav class="under-nav" data-show-overview="[##_var_showTabOverview_##]"
+                        data-show-posts="[##_var_showTabPosts_##]" data-show-guestbook="[##_var_showTabGuestbook_##]"
+                        data-show-tags="[##_var_showTabTags_##]">
+                        <a class="under-nav-item active" data-tab="overview" href="[##_blog_link_##]" title="Overview">
                             <svg viewBox="0 0 16 16">
                                 <path
                                     d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z">
                                 </path>
                             </svg>
-                            Overview
+                            [##_var_labelOverview_##]
                         </a>
-                        <a class="under-nav-item" href="/category" title="Posts">
+                        <a class="under-nav-item" data-tab="posts" href="/category" title="Posts">
                             <svg viewBox="0 0 16 16">
                                 <path
                                     d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914Z">
                                 </path>
                             </svg>
-                            Posts
+                            [##_var_labelPosts_##]
                         </a>
-                        <a class="under-nav-item" href="[##_guestbook_link_##]" title="Guestbook">
+                        <a class="under-nav-item" data-tab="guestbook" href="[##_guestbook_link_##]" title="Guestbook">
                             <svg viewBox="0 0 16 16">
                                 <path
                                     d="M1.5 2.75a.25.25 0 0 1 .25-.25h8.5a.25.25 0 0 1 .25.25v5.5a.25.25 0 0 1-.25.25h-3.5a.75.75 0 0 0-.53.22L3.5 11.44V9.25a.75.75 0 0 0-.75-.75h-1a.25.25 0 0 1-.25-.25Zm.25-1.75A1.75 1.75 0 0 0 0 2.75v5.5C0 9.216.784 10 1.75 10H2v1.543a1.457 1.457 0 0 0 2.487 1.03L7.061 10h3.189A1.75 1.75 0 0 0 12 8.25v-5.5A1.75 1.75 0 0 0 10.25 1Z">
                                 </path>
                             </svg>
-                            Guestbook
+                            [##_var_labelGuestbook_##]
                         </a>
-                        <a class="under-nav-item" href="[##_taglog_link_##]" title="Tags">
+                        <a class="under-nav-item" data-tab="tags" href="[##_taglog_link_##]" title="Tags">
                             <svg viewBox="0 0 16 16">
                                 <path
                                     d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z">
                                 </path>
                             </svg>
-                            Tags
+                            [##_var_labelTags_##]
                         </a>
                     </nav>
 
@@ -492,11 +500,11 @@
 
                     <!-- ===== Popular posts (Pinned repos style) ===== -->
                     <s_list>
-                        <div class="pinned-section">
+                        <div class="pinned-section" data-pinned-count="[##_var_pinnedPostCount_##]">
                             <div class="section-label">Popular posts</div>
                             <div class="pinned-grid" id="pinnedGrid"></div>
                         </div>
-                        <div class="post-list-section" id="postList">
+                        <div class="post-list-section" id="postList" data-show-thumb="[##_var_showThumbnail_##]">
                             <s_list_rep>
                                 <div class="repo-card" data-pinnable>
                                     <div class="repo-info">
@@ -713,11 +721,14 @@
                     }
                 }
 
-                // Move first 6 posts to pinned grid
+                // Move posts to pinned grid (count from skin setting)
                 var cards = document.querySelectorAll('#postList .repo-card[data-pinnable]');
                 var grid = document.getElementById('pinnedGrid');
-                if (grid && cards.length > 0) {
-                    var count = Math.min(cards.length, 6);
+                var pinnedSection = document.querySelector('.pinned-section');
+                var pinnedMax = pinnedSection ? parseInt(pinnedSection.dataset.pinnedCount || '6', 10) : 6;
+                if (pinnedMax === 0 && pinnedSection) pinnedSection.style.display = 'none';
+                if (grid && cards.length > 0 && pinnedMax > 0) {
+                    var count = Math.min(cards.length, pinnedMax);
                     for (var i = 0; i < count; i++) {
                         var card = cards[i];
                         var link = card.querySelector('.repo-title h3 a');
@@ -742,20 +753,56 @@
                 }
             });
 
-            /* ═══ Under-Nav Active Tab Detection ═══ */
+            /* ═══ Tab Visibility from Skin Settings ═══ */
+            (function () {
+                var nav = document.querySelector('.under-nav');
+                if (!nav) return;
+                var showMap = {
+                    overview: nav.dataset.showOverview,
+                    posts: nav.dataset.showPosts,
+                    guestbook: nav.dataset.showGuestbook,
+                    tags: nav.dataset.showTags
+                };
+                Object.keys(showMap).forEach(function (key) {
+                    if (showMap[key] === 'false') {
+                        var tab = nav.querySelector('[data-tab="' + key + '"]');
+                        if (tab) tab.style.display = 'none';
+                    }
+                });
+            })();
+
+            /* ═══ Under-Nav Active Tab Detection (data-tab 기반) ═══ */
             (function () {
                 var bodyId = document.body.id || '';
                 var tabs = document.querySelectorAll('.under-nav-item');
                 if (!tabs.length) return;
-                // Remove all active
-                for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-                // Detect page type from body_id
-                var activeIdx = 0; // default: Overview
-                if (bodyId === 'tt-body-guestbook') activeIdx = 2;
-                else if (bodyId === 'tt-body-tag') activeIdx = 3;
-                else if (bodyId === 'tt-body-category' || bodyId === 'tt-body-search') activeIdx = 1;
-                else if (window.location.pathname !== '/' && bodyId === 'tt-body-page') activeIdx = 0;
-                if (tabs[activeIdx]) tabs[activeIdx].classList.add('active');
+
+                // data-tab → body_id 매핑
+                var tabMap = {
+                    'tt-body-guestbook': 'guestbook',
+                    'tt-body-tag': 'tags',
+                    'tt-body-category': 'posts',
+                    'tt-body-search': 'posts'
+                };
+                var activeTab = tabMap[bodyId] || 'overview';
+
+                for (var i = 0; i < tabs.length; i++) {
+                    tabs[i].classList.remove('active');
+                    if (tabs[i].dataset.tab === activeTab) {
+                        tabs[i].classList.add('active');
+                    }
+                }
+            })();
+
+            /* ═══ Thumbnail Visibility from Skin Settings ═══ */
+            (function () {
+                var postList = document.getElementById('postList');
+                if (postList && postList.dataset.showThumb === 'false') {
+                    var thumbs = postList.querySelectorAll('.repo-thumb');
+                    for (var i = 0; i < thumbs.length; i++) {
+                        thumbs[i].style.display = 'none';
+                    }
+                }
             })();
 
             /* ═══ Follow Button State ═══ */
