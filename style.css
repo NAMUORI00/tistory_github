@@ -1070,8 +1070,8 @@ s_notice+s_rctps {
 
 /* Nested sub-list — 기본 펼쳐짐 (Tistory inline 스타일 override 포함) */
 .category-list ul ul {
-  margin-left: 12px;
-  padding-left: 12px;
+  margin-left: 6px;
+  padding-left: 8px;
   border-left: 1px solid var(--color-border-muted);
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.2s ease;
