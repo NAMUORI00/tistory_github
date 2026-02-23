@@ -203,91 +203,104 @@
                     </s_sidebar>
 
                     <!-- ═══ 2. Tabbed Recent Posts / Comments ═══ -->
-                    <div class="sidebar-module sidebar-card sidebar-tabs-card">
-                        <div class="sidebar-tabs">
-                            <input type="radio" name="recentTab" id="tabPosts" checked class="sidebar-tab-input">
-                            <label for="tabPosts" class="sidebar-tab-label">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                                    <path
-                                        d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z">
-                                    </path>
-                                </svg>
-                                최근 글
-                            </label>
-                            <input type="radio" name="recentTab" id="tabComments" class="sidebar-tab-input">
-                            <label for="tabComments" class="sidebar-tab-label">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                                    <path
-                                        d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894">
-                                    </path>
-                                </svg>
-                                최근 댓글
-                            </label>
+                    <s_sidebar>
+                        <s_sidebar_element>
+                            <div class="sidebar-module sidebar-card sidebar-tabs-card">
+                                <div class="sidebar-tabs">
+                                    <input type="radio" name="recentTab" id="tabPosts" checked
+                                        class="sidebar-tab-input">
+                                    <label for="tabPosts" class="sidebar-tab-label">
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                            <path
+                                                d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z">
+                                            </path>
+                                        </svg>
+                                        최근 글
+                                    </label>
+                                    <input type="radio" name="recentTab" id="tabComments" class="sidebar-tab-input">
+                                    <label for="tabComments" class="sidebar-tab-label">
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                            <path
+                                                d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894">
+                                            </path>
+                                        </svg>
+                                        최근 댓글
+                                    </label>
 
-                            <!-- Tab Panel: Recent Posts -->
-                            <div class="sidebar-tab-panel" id="panelPosts">
-                                <s_rctps>
-                                    <ul class="recent-list">
-                                        <s_rctps_rep>
-                                            <li>
-                                                <a href="[##_rctps_rep_link_##]"
-                                                    title="[##_rctps_rep_title_##]">[##_rctps_rep_title_##]</a>
-                                                <time>[##_rctps_rep_date_##]</time>
-                                            </li>
-                                        </s_rctps_rep>
-                                    </ul>
-                                </s_rctps>
-                            </div>
+                                    <!-- Tab Panel: Recent Posts -->
+                                    <div class="sidebar-tab-panel" id="panelPosts">
+                                        <s_rctps>
+                                            <ul class="recent-list">
+                                                <s_rctps_rep>
+                                                    <li>
+                                                        <a href="[##_rctps_rep_link_##]"
+                                                            title="[##_rctps_rep_title_##]">[##_rctps_rep_title_##]</a>
+                                                        <time>[##_rctps_rep_date_##]</time>
+                                                    </li>
+                                                </s_rctps_rep>
+                                            </ul>
+                                        </s_rctps>
+                                    </div>
 
-                            <!-- Tab Panel: Recent Comments -->
-                            <div class="sidebar-tab-panel" id="panelComments">
-                                <s_rctrp>
-                                    <ul class="recent-list comment-list-sidebar">
-                                        <s_rctrp_rep>
-                                            <li>
-                                                <div class="rc-comment-header">
-                                                    <strong>[##_rctrp_rep_name_##]</strong>
-                                                    <time>[##_rctrp_rep_date_##]</time>
-                                                </div>
-                                                <a href="[##_rctrp_rep_link_##]" class="rc-comment-text"
-                                                    title="댓글 보기">[##_rctrp_rep_desc_##]</a>
-                                            </li>
-                                        </s_rctrp_rep>
-                                    </ul>
-                                </s_rctrp>
+                                    <!-- Tab Panel: Recent Comments -->
+                                    <div class="sidebar-tab-panel" id="panelComments">
+                                        <s_rctrp>
+                                            <ul class="recent-list comment-list-sidebar">
+                                                <s_rctrp_rep>
+                                                    <li>
+                                                        <div class="rc-comment-header">
+                                                            <strong>[##_rctrp_rep_name_##]</strong>
+                                                            <time>[##_rctrp_rep_date_##]</time>
+                                                        </div>
+                                                        <a href="[##_rctrp_rep_link_##]" class="rc-comment-text"
+                                                            title="댓글 보기">[##_rctrp_rep_desc_##]</a>
+                                                    </li>
+                                                </s_rctrp_rep>
+                                            </ul>
+                                        </s_rctrp>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </s_sidebar_element>
+                    </s_sidebar>
 
                     <!-- ═══ 3. Archive ═══ -->
-                    <div class="sidebar-module sidebar-card">
-                        <h3>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                <path
-                                    d="m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm6.25 8.271 4.625-2.683a.25.25 0 0 0 .125-.216V5.677L8.75 8.432Z">
-                                </path>
-                            </svg>
-                            Archive
-                        </h3>
-                        <ul class="archive-list">
-                            [##_archive_##]
-                        </ul>
-                    </div>
+                    <s_sidebar>
+                        <s_sidebar_element>
+                            <div class="sidebar-module sidebar-card">
+                                <h3>
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path
+                                            d="m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm6.25 8.271 4.625-2.683a.25.25 0 0 0 .125-.216V5.677L8.75 8.432Z">
+                                        </path>
+                                    </svg>
+                                    Archive
+                                </h3>
+                                <ul class="archive-list">
+                                    [##_archive_##]
+                                </ul>
+                            </div>
+                        </s_sidebar_element>
+                    </s_sidebar>
 
                     <!-- ═══ 4. Calendar ═══ -->
-                    <div class="sidebar-module sidebar-card">
-                        <h3>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                <path
-                                    d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0Zm0 3.5h8.5a.25.25 0 0 1 .25.25V6h-11V3.75a.25.25 0 0 1 .25-.25Zm-2.25 4v6.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7.5Z">
-                                </path>
-                            </svg>
-                            Calendar
-                        </h3>
-                        <div class="calendar-wrapper">
-                            [##_calendar_##]
-                        </div>
-                    </div>
+                    <s_sidebar>
+                        <s_sidebar_element>
+                            <div class="sidebar-module sidebar-card">
+                                <h3>
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path
+                                            d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0Zm0 3.5h8.5a.25.25 0 0 1 .25.25V6h-11V3.75a.25.25 0 0 1 .25-.25Zm-2.25 4v6.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7.5Z">
+                                        </path>
+                                    </svg>
+                                    Calendar
+                                </h3>
+                                <div class="calendar-wrapper">
+                                    [##_calendar_##]
+                                </div>
+                            </div>
+                        </s_sidebar_element>
+                    </s_sidebar>
 
                     <!-- ═══ 5. Insights ═══ -->
                     <div class="sidebar-module sidebar-card visitor-stats">

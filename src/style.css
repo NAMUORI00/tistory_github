@@ -200,6 +200,32 @@ img {
   text-decoration: none;
 }
 
+/* Tistory의 [##_blog_menu_##]가 <ul><li> 구조로 렌더링될 때 가로 정렬 */
+.nav-links ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 16px;
+  align-items: center;
+}
+
+.nav-links ul li {
+  display: inline-flex;
+}
+
+.nav-links ul li a {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.nav-links ul li a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
 /* --- Admin Dropdown --- */
 .admin-dropdown {
   position: relative;
@@ -2192,4 +2218,14 @@ body,
 
 #tt-body-page .readme-body::after {
   display: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   티스토리 자동 주입 요소 제어
+   Tistory가 스킨과 별도로 삽입하는 UI 컴포넌트 숨기기
+   ═══════════════════════════════════════════════════════ */
+
+/* 블로그 프로필 Namecard (방명록 등에서 예상치 못한 프로필 카드) */
+[data-tistory-react-app="Namecard"] {
+  display: none !important;
 }
