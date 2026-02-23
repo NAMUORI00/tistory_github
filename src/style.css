@@ -1620,6 +1620,48 @@ s_notice+s_rctps {
   text-decoration: none;
 }
 
+/* --- Post Reaction Bar (공감/공유/통계) --- */
+.container_postbtn {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.postbtn_like {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.postbtn_like .wrap_btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.postbtn_like .btn_post {
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+}
+
+.postbtn_like .btn_post:hover {
+  background: var(--color-neutral-muted);
+  color: var(--color-fg-default);
+}
+
+.postbtn_like .btn_like {
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-fg-default);
+}
+
 /* --- Comments --- */
 .comments-section {
   border: 1px solid var(--color-border-default);
@@ -2115,4 +2157,39 @@ body,
 #tt-body-page .comments-section,
 #tt-body-page .protected-page {
   display: block;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Index 페이지: README 카드 본문 높이 제한
+   Tistory s_article_rep는 인덱스에서 모든 글을 반복 렌더링하므로,
+   본문을 일정 높이로 제한하여 깔끔한 요약 형태로 표시합니다.
+   글 상세(permalink) 페이지에서는 전체 본문이 표시됩니다.
+   ═══════════════════════════════════════════════════════ */
+
+/* 인덱스 페이지: 글 본문 높이 제한 + 페이드아웃 */
+#tt-body-index .readme-body {
+  max-height: 400px;
+  overflow: hidden;
+  position: relative;
+}
+
+#tt-body-index .readme-body::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--color-canvas-default));
+  pointer-events: none;
+}
+
+/* 글 상세 페이지: 높이 제한 해제 */
+#tt-body-page .readme-body {
+  max-height: none;
+  overflow: visible;
+}
+
+#tt-body-page .readme-body::after {
+  display: none;
 }
