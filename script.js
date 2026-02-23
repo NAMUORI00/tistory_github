@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // RSS 피드에서 포스트 날짜를 가져와 GitHub 스타일 그래프를 렌더링
     // ═══════════════════════════════════════════════════════
     const contribGrid = document.getElementById('contribGrid');
-    const contribMonths = document.getElementById('contribMonths');
     const contribTotal = document.getElementById('contribTotal');
 
     if (contribGrid) {
@@ -119,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const CACHE_TTL = 6 * 60 * 60 * 1000; // 6시간
 
         const WEEKS = 20;
-        const MONTHS_KR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         // 캐시 확인
         let cached = null;
@@ -181,21 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let totalPosts = 0;
             const cells = [];
-            const monthPositions = []; // 월 라벨 위치 추적
-
             const cursor = new Date(startDay);
             let weekIdx = 0;
-            let lastMonth = -1;
 
             while (cursor <= today) {
                 const dayOfWeek = cursor.getDay();
-                if (dayOfWeek === 0) {
-                    // 새 주 시작 — 월 변경 확인
-                    if (cursor.getMonth() !== lastMonth) {
-                        lastMonth = cursor.getMonth();
-                        monthPositions.push({ week: weekIdx, month: lastMonth });
-                    }
-                }
 
                 const key = cursor.getFullYear() + '-' +
                     String(cursor.getMonth() + 1).padStart(2, '0') + '-' +
@@ -243,24 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cells.forEach((c) => contribGrid.appendChild(c));
 
-            // 월 라벨 렌더링
-            if (contribMonths) {
-                contribMonths.innerHTML = '';
-                const totalWeeks = Math.ceil(cells.length / 7);
-                // 52칸 중 각 위치에 라벨 배치
-                let labelArr = new Array(totalWeeks).fill('');
-                monthPositions.forEach((mp) => {
-                    if (mp.week < totalWeeks) {
-                        labelArr[mp.week] = MONTHS_KR[mp.month];
-                    }
-                });
-                labelArr.forEach((label) => {
-                    const span = document.createElement('span');
-                    span.className = 'contrib-month-label';
-                    span.textContent = label;
-                    contribMonths.appendChild(span);
-                });
-            }
 
             // 총 포스트 수 표시
             if (contribTotal) {
