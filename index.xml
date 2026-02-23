@@ -198,6 +198,14 @@
         <default></default>
       </variable>
       <variable>
+        <name>profileBio</name>
+        <label><![CDATA[ 프로필 소개글 ]]></label>
+        <description><![CDATA[ 프로필 소개 문구입니다. 비워두면 블로그 설명(소개)이 표시됩니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
         <name>showFollowBtn</name>
         <label><![CDATA[ Follow 버튼 표시 ]]></label>
         <description><![CDATA[ 프로필 영역에 Follow(구독) 버튼을 표시합니다. ]]></description>

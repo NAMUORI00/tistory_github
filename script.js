@@ -67,6 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 프로필 소개글: 비어있으면 블로그 설명(desc)으로 대체
+    const profileBio = document.querySelector('.profile-bio');
+    if (profileBio) {
+        const bioText = profileBio.textContent.trim();
+        if (!bioText) {
+            profileBio.textContent = profileBio.dataset.default || '';
+        }
+    }
+
     // Follow 버튼: data-visible="false"이면 숨김
     const followBtn = document.getElementById('followBtn');
     if (followBtn && followBtn.dataset.visible === 'false') {
