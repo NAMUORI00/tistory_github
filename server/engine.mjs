@@ -76,6 +76,7 @@ async function scrapeBlogData(blogUrl) {
         config: null,   // T.config object
         blogApi: null,  // /m/api/blog/info JSON response
         tistoryHead: '', // Tistory가 주입하는 <head> 콘텐츠 (공통 CSS/JS/OG 메타 등)
+        blogMenu: '',    // 실제 블로그의 상단 메뉴 HTML
     };
 
     // ── /m/api/blog/info JSON API (가장 안정적인 구조화된 데이터) ──
@@ -182,6 +183,17 @@ async function scrapeBlogData(blogUrl) {
             if (canonicalLink) headLines.push(canonicalLink[0]);
 
             data.tistoryHead = headLines.join('\n');
+        }
+
+        // ── 블로그 메뉴 스크래핑 ──
+        // 실제 블로그의 nav-links 영역에서 메뉴 링크를 추출
+        const navMatch = html.match(/<nav[^>]*class="[^"]*nav-links[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
+        if (navMatch) {
+            // nav-links 내에서 <a> 태그만 추출 (관리자 드롭다운, 테마 토글 등 제외)
+            const menuALinks = [...navMatch[1].matchAll(/<a\s[^>]*href="[^"]*"[^>]*>[^<]*<\/a>/gi)];
+            if (menuALinks.length > 0) {
+                data.blogMenu = menuALinks.map(m => m[0]).join(' ');
+            }
         }
 
         // ── 방문자 수 파싱 ──
@@ -544,8 +556,7 @@ export async function hydrate(html, blogUrl, pageType = 'index', entryId = null)
             '\\[##_search_onclick_submit_##\\]': `window.location.href='${blogUrl}/search/'+document.getElementsByName('search')[0].value`,
         };
 
-        // 블로그 메뉴 (RSS 카테고리 기반)
-        const menuLinks = [`<a href="${blogUrl}">Home</a>`];
+        // 블로그 메뉴 — 실제 블로그에서 스크래핑한 메뉴 우선 사용
         const catMap = new Map();
         items.forEach(item => {
             if (item.category) {
@@ -556,10 +567,17 @@ export async function hydrate(html, blogUrl, pageType = 'index', entryId = null)
                 if (parts.length > 1) catMap.get(parent).add(parts.slice(1).join('/').trim());
             }
         });
-        for (const [parent] of catMap) {
-            menuLinks.push(`<a href="${blogUrl}/category/${encodeURIComponent(parent)}">${parent}</a>`);
+        if (scraped.blogMenu) {
+            // 실제 블로그에서 스크래핑한 메뉴 사용 (Live와 동일)
+            output = output.replace(/\[##_blog_menu_##\]/g, scraped.blogMenu);
+        } else {
+            // Fallback: RSS 카테고리 기반 메뉴 생성
+            const menuLinks = [`<a href="${blogUrl}">Home</a>`];
+            for (const [parent] of catMap) {
+                menuLinks.push(`<a href="${blogUrl}/category/${encodeURIComponent(parent)}">${parent}</a>`);
+            }
+            output = output.replace(/\[##_blog_menu_##\]/g, menuLinks.join(' '));
         }
-        output = output.replace(/\[##_blog_menu_##\]/g, menuLinks.join(' '));
 
         // 카테고리 트리 (컬러 도트 + 글 수 + 서브카테고리 트리)
         // ── 스크래핑 카테고리와 RSS 카테고리 병합 ──

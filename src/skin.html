@@ -388,6 +388,55 @@
                                         [##_tag_label_rep_##]
                                     </div>
                                 </s_tag_label>
+                                <!-- 공감/공유/통계 반응 바 (Tistory 표준) -->
+                                <div class="container_postbtn #post_button_group"
+                                    style="margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-default);">
+                                    <div class="postbtn_like" style="display:flex; align-items:center; gap:16px;">
+                                        <div class="wrap_btn" id="reaction-[##_article_rep_link_##]"
+                                            style="display:flex; align-items:center; gap:4px;">
+                                            <button type="button" class="btn_post uoc-icon"
+                                                style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid var(--color-border-default); border-radius:6px; background:transparent; color:var(--color-fg-default); cursor:pointer; font-size:13px;"
+                                                onclick="alert('프리뷰 모드에서는 공감 기능이 동작하지 않습니다.')">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path
+                                                        d="M8 14s-5.5-3.5-5.5-7A3 3 0 0 1 8 4.5 3 3 0 0 1 13.5 7C13.5 10.5 8 14 8 14z" />
+                                                </svg>
+                                                공감
+                                            </button>
+                                        </div>
+                                        <div class="wrap_btn" style="display:flex; align-items:center; gap:4px;">
+                                            <button type="button" class="btn_post"
+                                                style="display:flex; align-items:center; padding:6px; border:1px solid var(--color-border-default); border-radius:6px; background:transparent; color:var(--color-fg-muted); cursor:pointer;"
+                                                title="공유하기" onclick="alert('프리뷰 모드에서는 공유 기능이 동작하지 않습니다.')">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                    <path
+                                                        d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-.22a.75.75 0 0 1 .146-.073l.007-.003.008-.002.012-.003.02-.004.03-.003h.068l.025.002.02.003.013.003.012.004.008.002.007.003a.75.75 0 0 1 .146.073l.003.002.003.002.006.004.006.005.012.01.006.004.005.005.012.01L14.5 5.5l-.72.69-2.78-2.78V10a.75.75 0 0 1-1.5 0V3.41L6.72 6.19 6 5.5l3.22-3.22.012-.01.005-.005.006-.004.012-.01.006-.005.006-.004.003-.002.003-.002Z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="wrap_btn" style="display:flex; align-items:center; gap:4px;">
+                                            <button type="button" class="btn_post"
+                                                style="display:flex; align-items:center; padding:6px; border:1px solid var(--color-border-default); border-radius:6px; background:transparent; color:var(--color-fg-muted); cursor:pointer;"
+                                                title="통계">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                    <path
+                                                        d="M1.5 1.75V13.5h13.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm14.28 2.53-5.25 5.25a.75.75 0 0 1-1.06 0L7 7.06 4.28 9.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.25-3.25a.75.75 0 0 1 1.06 0L10 7.94l4.72-4.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="wrap_btn" style="display:flex; align-items:center; gap:4px;">
+                                            <button type="button" class="btn_post"
+                                                style="display:flex; align-items:center; padding:6px; border:1px solid var(--color-border-default); border-radius:6px; background:transparent; color:var(--color-fg-muted); cursor:pointer;"
+                                                title="더보기">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                    <path
+                                                        d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </s_article_rep>
                         </div>
                     </div>
