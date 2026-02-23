@@ -75,6 +75,7 @@ async function scrapeBlogData(blogUrl) {
         categories: [],  // { name, link, count, children: [{ name, link, count }] }
         config: null,   // T.config object
         blogApi: null,  // /m/api/blog/info JSON response
+        tistoryHead: '', // Tistory가 주입하는 <head> 콘텐츠 (공통 CSS/JS/OG 메타 등)
     };
 
     // ── /m/api/blog/info JSON API (가장 안정적인 구조화된 데이터) ──
@@ -97,6 +98,91 @@ async function scrapeBlogData(blogUrl) {
     try {
         const res = await axios.get(blogUrl, { timeout: 10000 });
         const html = res.data;
+
+        // ── Tistory 공통 <head> 콘텐츠 추출 ──
+        // 실제 블로그 페이지의 <head>에서 Tistory 플랫폼이 주입하는
+        // 공통 리소스(jQuery, 공통 CSS/JS, OG 메타, 플러그인 등)를 추출합니다.
+        // 스킨 자체의 style.css/script.js는 제외 (로컬에서 별도 서빙)
+        const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+        if (headMatch) {
+            const headContent = headMatch[1];
+            const headLines = [];
+
+            // window.T.config + window.TistoryBlog + window.appInfo 스크립트 블록
+            const tConfigBlock = headContent.match(/<script[^>]*>[\s\S]*?window\.T\.config\s*=[\s\S]*?<\/script>/i);
+            if (tConfigBlock) headLines.push(tConfigBlock[0]);
+
+            // jQuery (t1.daumcdn.net)
+            const jqueryMatch = headContent.match(/<script[^>]*src="[^"]*jquery[^"]*"[^>]*>[\s\S]*?<\/script>/i);
+            if (jqueryMatch) headLines.push(jqueryMatch[0]);
+
+            // tjQuery 설정 (noConflict)
+            const tjQueryBlock = headContent.match(/<script[^>]*>[\s\S]*?tjQuery[\s\S]*?<\/script>/i);
+            if (tjQueryBlock && !tjQueryBlock[0].includes('window.T.config')) {
+                headLines.push(tjQueryBlock[0]);
+            }
+
+            // Tistory 공통 CSS 파일들 (content.css, index.css, tistory.css 등)
+            const cssLinks = [...headContent.matchAll(/<link[^>]*href="([^"]*(?:daumcdn|tistory)[^"]*\.css(?:\?[^"]*)?)"[^>]*\/?>/gi)];
+            for (const m of cssLinks) {
+                // 스킨 자체 style.css는 제외 (로컬에서 별도 서빙 중)
+                if (m[1].includes('/skin/style.css')) continue;
+                headLines.push(m[0]);
+            }
+
+            // Tistory 공통 JS 파일들 (base.js, common.js, tiara 등)
+            const jsScripts = [...headContent.matchAll(/<script[^>]*src="([^"]*(?:daumcdn|tistory_admin|kakao)[^"]*\.js(?:\?[^"]*)?)"[^>]*>[\s\S]*?<\/script>/gi)];
+            for (const m of jsScripts) {
+                // 스킨 자체 script.js와 스킨별 vendor/app.js는 제외
+                if (m[1].includes('/skin/images/') || m[1].includes('/skin/script')) continue;
+                if (m[1].includes('jquery')) continue; // 이미 위에서 추가
+                headLines.push(m[0]);
+            }
+
+            // Tistory 모듈 JS (index.js, index-legacy.js 등)
+            const moduleScripts = [...headContent.matchAll(/<script[^>]*(?:type="module"|nomodule)[^>]*src="([^"]*(?:daumcdn|tistory)[^"]*\.js[^"]*)"[^>]*>[\s\S]*?<\/script>/gi)];
+            for (const m of moduleScripts) {
+                headLines.push(m[0]);
+            }
+
+            // OG 메타 태그
+            const ogMetas = [...headContent.matchAll(/<meta\s+(?:property|name)="(?:og|twitter):[^"]*"[^>]*\/?>/gi)];
+            for (const m of ogMetas) {
+                headLines.push(m[0]);
+            }
+
+            // Tistory 플러그인 CSS/JS (BusinessLicenseInfo, TistoryProfileLayer 등)
+            const pluginBlocks = [...headContent.matchAll(/<!-- (\w+) - START -->[\s\S]*?<!-- \1 - END -->/gi)];
+            for (const m of pluginBlocks) {
+                headLines.push(m[0]);
+            }
+
+            // Favicon
+            const faviconLinks = [...headContent.matchAll(/<link[^>]*rel="(?:icon|apple-touch-icon)"[^>]*\/?>/gi)];
+            for (const m of faviconLinks) {
+                headLines.push(m[0]);
+            }
+
+            // Google AdSense 메타
+            const adsenseMeta = [...headContent.matchAll(/<meta[^>]*name="google-adsense[^"]*"[^>]*\/?>/gi)];
+            for (const m of adsenseMeta) {
+                headLines.push(m[0]);
+            }
+
+            // Structured Data (JSON-LD)
+            const structuredData = headContent.match(/<!-- BEGIN STRUCTURED_DATA -->[\s\S]*?<!-- END STRUCTURED_DATA -->/i);
+            if (structuredData) headLines.push(structuredData[0]);
+
+            // another_category 스타일 (글 하단 "같은 카테고리의 다른 글" 스타일)
+            const anotherCatStyle = headContent.match(/<style[^>]*>[\s\S]*?\.another_category[\s\S]*?<\/style>/i);
+            if (anotherCatStyle) headLines.push(anotherCatStyle[0]);
+
+            // canonical 링크
+            const canonicalLink = headContent.match(/<link[^>]*rel="canonical"[^>]*\/?>/i);
+            if (canonicalLink) headLines.push(canonicalLink[0]);
+
+            data.tistoryHead = headLines.join('\n');
+        }
 
         // ── 방문자 수 파싱 ──
         // 다양한 티스토리 스킨 구조를 지원하는 다중 패턴 매칭
@@ -390,6 +476,43 @@ export async function hydrate(html, blogUrl, pageType = 'index', entryId = null)
         const blogDesc = api?.blogDescription || rssBlogDesc;
         const blogImage = api?.blogLogoURL || rssBlogImage;
         const bloggerName = api?.blogName || scraped.config?.BLOG?.nickName || blogTitle;
+
+        // ═══════════════════════════════════════════════════════
+        // [##_tistory_head_##] — 실제 Tistory 공통 리소스 주입
+        // jQuery, 공통 CSS/JS, OG 메타, 플러그인 등
+        // ═══════════════════════════════════════════════════════
+        if (scraped.tistoryHead) {
+            output = output.replace(/\[##_tistory_head_##\]/g, scraped.tistoryHead);
+        } else {
+            // fallback: 최소한의 Tistory 공통 리소스 직접 주입
+            const blogId = blogUrl.replace(/https?:\/\/([^.]+)\..*/, '$1');
+            const tConfig = JSON.stringify({
+                TOP_SSL_URL: 'https://www.tistory.com',
+                PREVIEW: true,
+                ROLE: 'guest',
+                PREV_PAGE: '',
+                NEXT_PAGE: '',
+                BLOG: { name: blogId, title: blogTitle, isDormancy: false, nickName: bloggerName },
+                IS_LOGIN: false,
+                HAS_BLOG: false,
+            });
+            const tBlog = JSON.stringify({
+                basePath: '',
+                url: blogUrl,
+                tistoryUrl: blogUrl,
+                manageUrl: blogUrl + '/manage',
+            });
+            const fallbackHead = [
+                '<script>if(!window.T){window.T={}}',
+                'window.T.config=' + tConfig + ';',
+                'window.TistoryBlog=' + tBlog + ';',
+                '</script>',
+                '<script src="//t1.daumcdn.net/tistory_admin/lib/jquery/jquery-3.5.1.min.js"></script>',
+                '<link rel="stylesheet" href="https://tistory1.daumcdn.net/tistory_admin/userblog/userblog-cc5df8d167f071ef0aa6b0df09772f80c0161cd0/static/style/content.css"/>',
+                '<link rel="stylesheet" href="https://tistory1.daumcdn.net/tistory_admin/userblog/userblog-cc5df8d167f071ef0aa6b0df09772f80c0161cd0/static/style/tistory.css"/>',
+            ].join('\n');
+            output = output.replace(/\[##_tistory_head_##\]/g, fallbackHead);
+        }
 
         const mappings = {
             '\\[##_title_##\\]': blogTitle,
