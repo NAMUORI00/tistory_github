@@ -2300,3 +2300,15 @@ body,
   color: var(--color-fg-muted);
   font-size: 12px;
 }
+
+/* 공감/공유/통계 버튼 — Tistory 기본 스타일 유지 (CSS reset 제외) */
+.container_postbtn {
+  all: revert;
+  margin-top: 24px;
+}
+
+.container_postbtn *,
+.container_postbtn *::before,
+.container_postbtn *::after {
+  all: revert;
+}
