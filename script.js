@@ -107,6 +107,169 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ═══════════════════════════════════════════════════════
+    // Post Activity 잔디밭 (Contribution Graph)
+    // RSS 피드에서 포스트 날짜를 가져와 GitHub 스타일 그래프를 렌더링
+    // ═══════════════════════════════════════════════════════
+    const contribGrid = document.getElementById('contribGrid');
+    const contribMonths = document.getElementById('contribMonths');
+    const contribTotal = document.getElementById('contribTotal');
+
+    if (contribGrid) {
+        const CACHE_KEY = 'tistory_post_activity';
+        const CACHE_TTL = 6 * 60 * 60 * 1000; // 6시간
+
+        const WEEKS = 20;
+        const MONTHS_KR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // 캐시 확인
+        let cached = null;
+        try {
+            cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        } catch (e) { /* ignore */ }
+
+        if (cached && cached.ts && (Date.now() - cached.ts < CACHE_TTL)) {
+            renderContribGraph(cached.data);
+        } else {
+            fetchPostDates().then(renderContribGraph).catch(() => {
+                renderContribGraph({});
+            });
+        }
+
+        async function fetchPostDates() {
+            const dateMap = {};
+            try {
+                const res = await fetch('/rss');
+                const text = await res.text();
+                const xml = new DOMParser().parseFromString(text, 'text/xml');
+                const items = xml.querySelectorAll('item');
+
+                items.forEach((item) => {
+                    const pubDateEl = item.querySelector('pubDate');
+                    if (!pubDateEl) return;
+                    const d = new Date(pubDateEl.textContent);
+                    if (isNaN(d)) return;
+                    const key = d.getFullYear() + '-' +
+                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(d.getDate()).padStart(2, '0');
+                    dateMap[key] = (dateMap[key] || 0) + 1;
+                });
+
+                // 캐시 저장
+                try {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: dateMap }));
+                } catch (e) { /* quota exceeded 등 무시 */ }
+            } catch (e) {
+                console.warn('Post Activity: RSS fetch failed', e);
+            }
+            return dateMap;
+        }
+
+        function renderContribGraph(dateMap) {
+            contribGrid.innerHTML = '';
+
+            // 오늘부터 52주 전까지의 날짜 범위 계산
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 이번 주 토요일(끝)에서 52주 전 일요일(시작)
+            const endDay = new Date(today);
+            const startDay = new Date(today);
+            startDay.setDate(startDay.getDate() - (WEEKS * 7) + (6 - today.getDay()));
+
+            // 일요일부터 시작하도록 조정
+            startDay.setDate(startDay.getDate() - startDay.getDay());
+
+            let totalPosts = 0;
+            const cells = [];
+            const monthPositions = []; // 월 라벨 위치 추적
+
+            const cursor = new Date(startDay);
+            let weekIdx = 0;
+            let lastMonth = -1;
+
+            while (cursor <= today) {
+                const dayOfWeek = cursor.getDay();
+                if (dayOfWeek === 0) {
+                    // 새 주 시작 — 월 변경 확인
+                    if (cursor.getMonth() !== lastMonth) {
+                        lastMonth = cursor.getMonth();
+                        monthPositions.push({ week: weekIdx, month: lastMonth });
+                    }
+                }
+
+                const key = cursor.getFullYear() + '-' +
+                    String(cursor.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(cursor.getDate()).padStart(2, '0');
+                const count = dateMap[key] || 0;
+                totalPosts += count;
+
+                let level = 0;
+                if (count >= 3) level = 4;
+                else if (count >= 2) level = 3;
+                else if (count >= 1) level = 2;
+
+                // 미래 날짜는 비활성
+                const isFuture = cursor > today;
+
+                const cell = document.createElement('span');
+                cell.className = 'contrib-cell';
+                cell.dataset.level = isFuture ? '0' : String(level);
+
+                // 툴팁
+                const dateStr = cursor.getFullYear() + '.' +
+                    String(cursor.getMonth() + 1).padStart(2, '0') + '.' +
+                    String(cursor.getDate()).padStart(2, '0');
+                cell.dataset.tip = count > 0
+                    ? count + '개 포스트 — ' + dateStr
+                    : dateStr;
+
+                cells.push(cell);
+
+                if (dayOfWeek === 6) weekIdx++;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            // 마지막 주 남은 칸 채우기 (7의 배수로)
+            const remainder = cells.length % 7;
+            if (remainder > 0) {
+                for (let i = 0; i < 7 - remainder; i++) {
+                    const emptyCell = document.createElement('span');
+                    emptyCell.className = 'contrib-cell';
+                    emptyCell.dataset.level = '0';
+                    emptyCell.style.visibility = 'hidden';
+                    cells.push(emptyCell);
+                }
+            }
+
+            cells.forEach((c) => contribGrid.appendChild(c));
+
+            // 월 라벨 렌더링
+            if (contribMonths) {
+                contribMonths.innerHTML = '';
+                const totalWeeks = Math.ceil(cells.length / 7);
+                // 52칸 중 각 위치에 라벨 배치
+                let labelArr = new Array(totalWeeks).fill('');
+                monthPositions.forEach((mp) => {
+                    if (mp.week < totalWeeks) {
+                        labelArr[mp.week] = MONTHS_KR[mp.month];
+                    }
+                });
+                labelArr.forEach((label) => {
+                    const span = document.createElement('span');
+                    span.className = 'contrib-month-label';
+                    span.textContent = label;
+                    contribMonths.appendChild(span);
+                });
+            }
+
+            // 총 포스트 수 표시
+            if (contribTotal) {
+                contribTotal.textContent = totalPosts + ' posts in ' + WEEKS + ' weeks';
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
     // 카테고리 색상 시스템
     // 카테고리 이름을 해시하여 고정 색상을 부여
     // 이름이 바뀌지 않는 한 항상 동일한 색상이 적용됨

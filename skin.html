@@ -379,7 +379,25 @@
                             </svg>
                             Post Activity
                         </h3>
-                        <div class="contribution-bar" id="contribBar"></div>
+                        <div class="contrib-graph" id="contribGraph">
+                            <div class="contrib-months" id="contribMonths"></div>
+                            <div class="contrib-grid" id="contribGrid">
+                                <!-- JS가 52주×7일 셀을 생성 -->
+                                <div class="contrib-loading">Loading...</div>
+                            </div>
+                            <div class="contrib-footer">
+                                <span class="contrib-total" id="contribTotal"></span>
+                                <div class="contrib-legend">
+                                    <span class="contrib-legend-label">Less</span>
+                                    <span class="contrib-cell" data-level="0"></span>
+                                    <span class="contrib-cell" data-level="1"></span>
+                                    <span class="contrib-cell" data-level="2"></span>
+                                    <span class="contrib-cell" data-level="3"></span>
+                                    <span class="contrib-cell" data-level="4"></span>
+                                    <span class="contrib-legend-label">More</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </aside>
 
@@ -781,7 +799,8 @@
                     <a href="[##_rss_url_##]">RSS</a>
                     <a href="[##_taglog_link_##]">Tags</a>
                 </div>
-                <p>Theme by <a href="https://github.com/MeiK2333/github-style">github-style</a> · Powered by Tistory</p>
+                <p>Skin by <a href="https://github.com/NAMUORI00/tistory_github/tree/skin" target="_blank"
+                        rel="noopener">namuori00</a> · Powered by Tistory</p>
             </div>
         </footer>
 
