@@ -2225,23 +2225,7 @@ body,
    글 상세(permalink) 페이지에서는 전체 본문이 표시됩니다.
    ═══════════════════════════════════════════════════════ */
 
-/* 인덱스 페이지: 글 본문 높이 제한 + 페이드아웃 */
-#tt-body-index .readme-body {
-  max-height: 400px;
-  overflow: hidden;
-  position: relative;
-}
-
-#tt-body-index .readme-body::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, var(--color-canvas-default));
-  pointer-events: none;
-}
+/* 인덱스 페이지: 각 article-card에서 전체 본문 표시 (높이 제한 없음) */
 
 /* 글 상세 페이지: 높이 제한 해제 */
 #tt-body-page .readme-body {
