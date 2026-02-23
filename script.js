@@ -27,6 +27,86 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ═══════════════════════════════════════════════════════
+    // 커스텀 메뉴 렌더링 (스킨 설정에서 추가한 메뉴)
+    // ═══════════════════════════════════════════════════════
+    const menuData = document.getElementById('customMenuData');
+    const menuSlot = document.getElementById('customMenuSlot');
+    if (menuData && menuSlot) {
+        const linkSvg = '<svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-.8 9.45a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25Z"></path></svg>';
+        for (let i = 1; i <= 5; i++) {
+            const label = (menuData.dataset['m' + i + 'Label'] || '').trim();
+            const url = (menuData.dataset['m' + i + 'Url'] || '').trim();
+            if (label && url) {
+                const a = document.createElement('a');
+                a.className = 'under-nav-item';
+                a.setAttribute('data-tab', 'custom' + i);
+                a.href = url;
+                a.title = label;
+                // 외부 링크면 새 탭에서 열기
+                if (url.startsWith('http') && !url.includes(window.location.hostname)) {
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                }
+                a.innerHTML = linkSvg + ' ' + label;
+                menuSlot.appendChild(a);
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 프로필 설정 초기화
+    // 빈 값 → 기본값 fallback + 빈 항목 숨김
+    // ═══════════════════════════════════════════════════════
+
+    // 프로필 서브 이름: 비어있으면 블로그 제목으로 대체
+    const profileUsername = document.querySelector('.profile-username');
+    if (profileUsername) {
+        const text = profileUsername.textContent.trim();
+        if (!text) {
+            profileUsername.textContent = profileUsername.dataset.default || '';
+        }
+    }
+
+    // Follow 버튼: data-visible="false"이면 숨김
+    const followBtn = document.getElementById('followBtn');
+    if (followBtn && followBtn.dataset.visible === 'false') {
+        followBtn.style.display = 'none';
+    }
+
+    // 위치: 빈 값이면 숨김
+    const locationItem = document.querySelector('[data-field="location"]');
+    if (locationItem) {
+        const val = (locationItem.dataset.value || '').trim();
+        if (!val) {
+            locationItem.style.display = 'none';
+        }
+    }
+
+    // 블로그 링크: 커스텀 텍스트/URL이 비어있으면 기본 블로그 주소로 대체
+    const linkItem = document.querySelector('[data-field="link"] a');
+    if (linkItem) {
+        const customText = (linkItem.dataset.customText || '').trim();
+        const defaultText = linkItem.dataset.defaultText || '';
+        const defaultHref = linkItem.dataset.defaultHref || '';
+
+        if (!customText) {
+            linkItem.textContent = defaultText;
+        }
+        const href = (linkItem.getAttribute('href') || '').trim();
+        if (!href) {
+            linkItem.setAttribute('href', defaultHref);
+        }
+    }
+
+    // SNS 링크: label이 비어있으면 숨김
+    document.querySelectorAll('.profile-social').forEach((item) => {
+        const label = (item.dataset.label || '').trim();
+        if (!label) {
+            item.style.display = 'none';
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════
     // 카테고리 색상 도트 자동 적용
     // 로컬 프리뷰와 실제 Tistory 양쪽에서 동작
     // ═══════════════════════════════════════════════════════

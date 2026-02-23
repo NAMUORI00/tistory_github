@@ -1019,6 +1019,11 @@ s_notice+s_rctps {
   text-decoration: none;
 }
 
+.archive-count {
+  font-size: 12px;
+  color: var(--color-fg-subtle);
+}
+
 
 .search-box {
   display: flex;
@@ -1688,10 +1693,11 @@ s_notice+s_rctps {
   color: var(--color-fg-default);
 }
 
-/* --- Comments --- */
+/* --- Comments (한국 커뮤니티 스타일) --- */
 .comments-section {
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius);
+  margin-top: 16px;
   margin-bottom: 24px;
   overflow: hidden;
 }
@@ -1713,43 +1719,32 @@ s_notice+s_rctps {
 }
 
 .comments-body {
-  padding: 16px;
+  padding: 0;
 }
 
+.comment-list {
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── 개별 댓글 ─── */
 .comment-item {
-  padding: 12px 0;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--color-border-default);
-  display: flex;
-  gap: 12px;
+  display: block;
 }
 
 .comment-item:last-child {
   border-bottom: none;
 }
 
-.comment-item.reply {
-  margin-left: 40px;
-  padding-left: 12px;
-  border-left: 2px solid var(--color-border-default);
-}
-
+/* ─── 아바타 숨김 (Tistory가 URL 텍스트를 직접 출력하므로) ─── */
 .comment-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: var(--color-neutral-muted);
+  display: none;
 }
 
-.comment-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* ─── 댓글 본문 ─── */
 .comment-body {
-  flex: 1;
   min-width: 0;
 }
 
@@ -1757,8 +1752,9 @@ s_notice+s_rctps {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 4px;
+  flex-wrap: wrap;
 }
 
 .comment-author {
@@ -1767,37 +1763,80 @@ s_notice+s_rctps {
   font-size: 13px;
 }
 
+.comment-author img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: none !important;
+}
+
 .comment-date {
   color: var(--color-fg-muted);
+  font-size: 12px;
 }
 
 .comment-actions {
   margin-left: auto;
-  display: flex;
-  gap: 6px;
+  display: inline-flex;
+  gap: 2px;
 }
 
 .comment-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius);
   font-size: 12px;
-  opacity: 0.5;
-  transition: opacity 0.15s;
+  text-decoration: none;
+  opacity: 0.4;
+  transition: opacity 0.15s, background 0.15s;
 }
 
 .comment-actions a:hover {
   opacity: 1;
+  background: var(--color-neutral-muted);
 }
 
 .comment-text {
   font-size: 14px;
   color: var(--color-fg-default);
-  line-height: 1.5;
+  line-height: 1.6;
+  word-break: break-word;
+  margin: 0;
 }
 
+/* ─── 대댓글 트리 (ㄴ 형태) ─── */
 .comment-replies {
-  margin-top: 4px;
+  margin-top: 0;
 }
 
-/* Comment Form */
+.comment-item.reply {
+  margin-left: 0;
+  padding: 10px 16px 10px 40px;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-canvas-subtle);
+  position: relative;
+}
+
+.comment-item.reply::before {
+  content: '↳';
+  position: absolute;
+  left: 18px;
+  top: 12px;
+  font-size: 14px;
+  color: var(--color-fg-muted);
+  line-height: 1;
+}
+
+.comment-item.reply:last-child {
+  border-bottom: none;
+}
+
+/* ─── 댓글 폼 ─── */
 .comment-form {
   padding: 16px;
   border-top: 1px solid var(--color-border-default);
@@ -1865,13 +1904,52 @@ s_notice+s_rctps {
   margin-top: 8px;
 }
 
+/* ─── 비밀댓글 토글 ─── */
 .secret-check {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-fg-muted);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.secret-check input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  background: var(--color-neutral-muted);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.secret-check input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.secret-check input[type="checkbox"]:checked {
+  background: var(--color-accent-emphasis);
+  border-color: var(--color-accent-emphasis);
+}
+
+.secret-check input[type="checkbox"]:checked::before {
+  transform: translateX(16px);
 }
 
 .comment-form-actions button {
@@ -1883,6 +1961,7 @@ s_notice+s_rctps {
   border: 1px solid rgba(27, 31, 36, 0.15);
   border-radius: var(--radius);
   cursor: pointer;
+  transition: filter 0.15s;
 }
 
 .comment-form-actions button:hover {
@@ -2170,19 +2249,25 @@ body,
 
 /* Post detail(page): Pinned와 리스트 숨김 → article-card(글 상세)만 표시 */
 #tt-body-page .pinned-section,
-#tt-body-page .post-list-section {
+#tt-body-page .post-list-section,
+#tt-body-page .notice-page-list {
   display: none;
 }
 
-/* 댓글/보호글: 글 상세(post)에서만 표시 — 다른 페이지에서는 숨김 */
-.comments-section,
+/* 보호글: 글 상세(post)에서만 표시 — 다른 페이지에서는 숨김 */
 .protected-page {
   display: none;
 }
 
-#tt-body-page .comments-section,
 #tt-body-page .protected-page {
   display: block;
+}
+
+/* 공지사항 목록 페이지 스타일 */
+.notice-page-list .repo-tag {
+  background: var(--color-severe-emphasis, #cf222e);
+  color: #fff;
+  border-color: transparent;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2301,14 +2386,89 @@ body,
   font-size: 12px;
 }
 
-/* 공감/공유/통계 버튼 — Tistory 기본 스타일 유지 (CSS reset 제외) */
+/* 공감/공유/통계 버튼 — GitHub 스타일 플랫 버튼 */
 .container_postbtn {
-  all: revert;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-default);
 }
 
-.container_postbtn *,
-.container_postbtn *::before,
-.container_postbtn *::after {
-  all: revert;
+.container_postbtn .postbtn_like {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.container_postbtn .wrap_btn {
+  display: inline-flex !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.container_postbtn .btn_post {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 12px !important;
+  border: 1px solid var(--color-border-default) !important;
+  border-radius: var(--radius) !important;
+  background: var(--color-canvas-default) !important;
+  color: var(--color-fg-muted) !important;
+  font-size: 12px !important;
+  font-weight: 500;
+  font-family: var(--font-body) !important;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  box-shadow: none !important;
+  line-height: 20px !important;
+}
+
+.container_postbtn .btn_post:hover {
+  background: var(--color-canvas-subtle) !important;
+  color: var(--color-fg-default) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+.container_postbtn .btn_post.on,
+.container_postbtn .btn_post.btn_like.on {
+  color: var(--color-accent-fg) !important;
+  border-color: var(--color-accent-emphasis) !important;
+}
+
+.container_postbtn .btn_post svg,
+.container_postbtn .btn_post img {
+  width: 16px !important;
+  height: 16px !important;
+  vertical-align: middle;
+}
+
+.container_postbtn .txt_like {
+  font-size: 12px !important;
+  font-family: var(--font-body) !important;
+  color: inherit !important;
+}
+
+/* 구독하기 버튼 */
+.container_postbtn .btn_post.btn_subscription {
+  background: var(--color-success-emphasis) !important;
+  color: #fff !important;
+  border-color: var(--color-success-emphasis) !important;
+}
+
+.container_postbtn .btn_post.btn_subscription:hover {
+  filter: brightness(1.1);
 }

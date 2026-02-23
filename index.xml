@@ -172,10 +172,110 @@
       <variable>
         <name>showInsights</name>
         <label><![CDATA[ Insights(방문자 통계) 표시 ]]></label>
-        <description><![CDATA[ 사이드바에 방문자 통계를 표시합니다. ]]></description>
+        <description><![CDATA[ 사이드바에 방문자 통계(Today/Yesterday/Total)를 표시합니다. ]]></description>
         <type>BOOL</type>
         <option />
         <default>true</default>
+      </variable>
+      <variable>
+        <name>showPostActivity</name>
+        <label><![CDATA[ Post Activity(잔디밭) 표시 ]]></label>
+        <description><![CDATA[ 사이드바에 포스트 활동 히트맵(잔디밭)을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+    </variablegroup>
+
+    <!-- ═══ 프로필 설정 ═══ -->
+    <variablegroup name="프로필 설정">
+      <variable>
+        <name>profileUsername</name>
+        <label><![CDATA[ 프로필 서브 이름 ]]></label>
+        <description><![CDATA[ 닉네임 아래에 표시될 이름/아이디입니다. 비워두면 블로그 제목이 표시됩니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>showFollowBtn</name>
+        <label><![CDATA[ Follow 버튼 표시 ]]></label>
+        <description><![CDATA[ 프로필 영역에 Follow(구독) 버튼을 표시합니다. ]]></description>
+        <type>BOOL</type>
+        <option />
+        <default>true</default>
+      </variable>
+      <variable>
+        <name>profileLocation</name>
+        <label><![CDATA[ 위치 텍스트 ]]></label>
+        <description><![CDATA[ 프로필에 표시될 위치 정보입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default>Tistory Blog</default>
+      </variable>
+      <variable>
+        <name>profileLinkText</name>
+        <label><![CDATA[ 블로그 링크 표시 텍스트 ]]></label>
+        <description><![CDATA[ 프로필에 표시될 링크 텍스트입니다. 비워두면 블로그 주소가 표시됩니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>profileLinkUrl</name>
+        <label><![CDATA[ 블로그 링크 URL ]]></label>
+        <description><![CDATA[ 프로필 링크 클릭 시 이동할 주소입니다. 비워두면 블로그 주소가 사용됩니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink1Label</name>
+        <label><![CDATA[ SNS 링크 1 이름 ]]></label>
+        <description><![CDATA[ 예: GitHub, Twitter. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink1Url</name>
+        <label><![CDATA[ SNS 링크 1 URL ]]></label>
+        <description><![CDATA[ 예: https://github.com/username ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink2Label</name>
+        <label><![CDATA[ SNS 링크 2 이름 ]]></label>
+        <description><![CDATA[ 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink2Url</name>
+        <label><![CDATA[ SNS 링크 2 URL ]]></label>
+        <description><![CDATA[ 예: https://x.com/username ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink3Label</name>
+        <label><![CDATA[ SNS 링크 3 이름 ]]></label>
+        <description><![CDATA[ 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>socialLink3Url</name>
+        <label><![CDATA[ SNS 링크 3 URL ]]></label>
+        <description><![CDATA[ 예: https://linkedin.com/in/username ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
       </variable>
     </variablegroup>
 
@@ -203,6 +303,90 @@
         <type>BOOL</type>
         <option />
         <default>true</default>
+      </variable>
+    </variablegroup>
+
+    <!-- ═══ 커스텀 메뉴 ═══ -->
+    <variablegroup name="커스텀 메뉴">
+      <variable>
+        <name>customMenu1Label</name>
+        <label><![CDATA[ 메뉴 1 이름 ]]></label>
+        <description><![CDATA[ 상단 탭에 추가할 메뉴 이름입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu1Url</name>
+        <label><![CDATA[ 메뉴 1 링크 ]]></label>
+        <description><![CDATA[ 페이지/카테고리/공지/외부 URL을 입력하세요. 예: /notice, /category/개발, https://example.com ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu2Label</name>
+        <label><![CDATA[ 메뉴 2 이름 ]]></label>
+        <description><![CDATA[ 상단 탭에 추가할 메뉴 이름입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu2Url</name>
+        <label><![CDATA[ 메뉴 2 링크 ]]></label>
+        <description><![CDATA[ 페이지/카테고리/공지/외부 URL을 입력하세요. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu3Label</name>
+        <label><![CDATA[ 메뉴 3 이름 ]]></label>
+        <description><![CDATA[ 상단 탭에 추가할 메뉴 이름입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu3Url</name>
+        <label><![CDATA[ 메뉴 3 링크 ]]></label>
+        <description><![CDATA[ 페이지/카테고리/공지/외부 URL을 입력하세요. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu4Label</name>
+        <label><![CDATA[ 메뉴 4 이름 ]]></label>
+        <description><![CDATA[ 상단 탭에 추가할 메뉴 이름입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu4Url</name>
+        <label><![CDATA[ 메뉴 4 링크 ]]></label>
+        <description><![CDATA[ 페이지/카테고리/공지/외부 URL을 입력하세요. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu5Label</name>
+        <label><![CDATA[ 메뉴 5 이름 ]]></label>
+        <description><![CDATA[ 상단 탭에 추가할 메뉴 이름입니다. 비워두면 표시되지 않습니다. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
+      </variable>
+      <variable>
+        <name>customMenu5Url</name>
+        <label><![CDATA[ 메뉴 5 링크 ]]></label>
+        <description><![CDATA[ 페이지/카테고리/공지/외부 URL을 입력하세요. ]]></description>
+        <type>STRING</type>
+        <option />
+        <default></default>
       </variable>
     </variablegroup>
   </variables>
