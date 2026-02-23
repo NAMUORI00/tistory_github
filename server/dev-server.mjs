@@ -48,8 +48,10 @@ app.get('/', async (req, res) => {
                 // 3) 카테고리 링크: /category 또는 /category/XXX → 로컬 프리뷰
                 .replace(new RegExp(`href="${esc}/category/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=category"`)
                 .replace(new RegExp(`href="${esc}/category"`, 'g'), `href="${localBase}/${targetParam}&page=category"`)
+                // 3-b) 상대 경로 /category (skin.html에서 직접 사용)
+                .replace(/href="\/category"/g, `href="${localBase}/${targetParam}&page=category"`)
                 // 4) 개별 글 링크: /123 또는 /entry/title → 로컬 프리뷰 글 상세
-                .replace(new RegExp(`href="${esc}/(\\d+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
+                .replace(new RegExp(`href="${esc}/(\\\\d+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
                 .replace(new RegExp(`href="${esc}/entry/([^"]+)"`, 'g'), `href="${localBase}/${targetParam}&page=post&entry=$1"`)
                 // 5) 블로그 메인 URL → Overview
                 .replace(new RegExp(`href="${esc}"`, 'g'), `href="${localBase}/${targetParam}"`)
