@@ -11,6 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ═══════════════════════════════════════════════════════
+    // URL 이중 슬래시 수정 (//category, //tag 등)
+    // Tistory 치환자가 trailing slash 포함 URL을 생성할 수 있으므로
+    // 클라이언트 측에서 모든 링크의 이중 슬래시를 정리합니다
+    // ═══════════════════════════════════════════════════════
+    document.querySelectorAll('a[href]').forEach((a) => {
+        const href = a.getAttribute('href');
+        if (href && href.includes('://')) {
+            // 프로토콜의 :// 는 유지하고, 경로 부분의 // 만 / 로 치환
+            const fixed = href.replace(/(https?:\/\/[^/]+)\/{2,}/g, '$1/');
+            if (fixed !== href) {
+                a.setAttribute('href', fixed);
+            }
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════
     // 카테고리 색상 도트 자동 적용
     // 로컬 프리뷰와 실제 Tistory 양쪽에서 동작
     // ═══════════════════════════════════════════════════════
